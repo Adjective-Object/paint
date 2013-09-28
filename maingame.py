@@ -117,8 +117,25 @@ class MainGame(GameView):
     
     def _populate_map(self):
         self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2,
-                                          pygame.color.Color(23,71,166,255)
+                                          pygame.color.Color(23,71,166,255),
+                                          keybindings = {"LEFT": pygame.K_LEFT,
+                                                         "RIGHT": pygame.K_RIGHT,
+                                                         "UP": pygame.K_UP,
+                                                         "DOWN": pygame.K_DOWN,
+                                                         "PAINT": pygame.K_COMMA,
+                                                         "BOMB": pygame.K_PERIOD,
+                                                         "ITEM": pygame.K_SLASH}                                          
                                           ))
+        self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2,
+                                                  pygame.color.Color(232,44,12,255),
+                                                  keybindings = {"LEFT": pygame.K_a,
+                                                                 "RIGHT": pygame.K_d,
+                                                                 "UP": pygame.K_w,
+                                                                 "DOWN": pygame.K_s,
+                                                                 "PAINT": pygame.K_z,
+                                                                 "BOMB": pygame.K_x,
+                                                                 "ITEM": pygame.K_c}                                                   
+                                                  ))        
         
         pol = self.add(entities.Police(GRID_RESOLUTION*5,
                                  GRID_RESOLUTION*6+1)
