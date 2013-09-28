@@ -4,6 +4,7 @@ from random import randint
 import pygame
 import entities
 from entities import Point
+import random
 
 
 GRID_RESOLUTION = 50
@@ -21,16 +22,19 @@ class MainGame(GameView):
         
         self.map_tiles = self._make_map()
         self.entities = []
+        self.cameras = []
+        self.players = []
+        self._populate_map()
         
-        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2,
-                                          pygame.color.Color(23,71,166,255)
-                                          ))
-
     def main_loop(self, elapsed):
         """moves forward the game"""
         for entity in self.entities:
             entity.update(elapsed)
         #TODO map behaviors
+        for camera in self.cameras:
+            for player in self.players:
+                if(camera.get_vision_rect().colliderect(player.get_rect())):
+                    camera.police.alert_to(player)
     
     def render(self):
         for row_number in range(len(self.map_tiles)):
@@ -40,11 +44,21 @@ class MainGame(GameView):
             for entity in self.entities:
                 if( int((entity.y-1)/GRID_RESOLUTION) ==  row_number):
                     entity.render(self.canvas)
+        
+        for entity in self.entities:
+            entity.post_render(self.canvas)
     
     #begin helper functions
     def add(self, entity):
         entity.set_parent(self)
         self.entities.append(entity)
+        
+        if(isinstance(entity, entities.Camera)):
+            self.cameras.append(entity)
+        if(isinstance(entity, entities.Player)):
+            self.players.append(entity)
+        
+        return entity
     
     #begin construction functions
     def _make_map(self):
@@ -73,3 +87,48 @@ class MainGame(GameView):
                     retmap[y][x].neighbor_down = retmap[y+1][x]
             
         return retmap
+    
+    def _populate_map(self):
+        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2,
+                                          pygame.color.Color(23,71,166,255)
+                                          ))
+        
+        pol = self.add(entities.Police(GRID_RESOLUTION*5,
+                                 GRID_RESOLUTION*6+1)
+                )        
+        self.add(entities.Camera(GRID_RESOLUTION*3,
+                                 GRID_RESOLUTION*3+1,
+                                 pol,
+                                 random.random(),
+                                 random.random())
+                 )
+        
+        pol = self.add(entities.Police(GRID_RESOLUTION*7,
+                                 GRID_RESOLUTION*6+1)
+                )        
+        self.add(entities.Camera(GRID_RESOLUTION*3,
+                                 GRID_RESOLUTION*9+1,
+                                 pol,
+                                 random.random(),
+                                 random.random())
+                 )
+        
+        pol = self.add(entities.Police(GRID_RESOLUTION*7,
+                                 GRID_RESOLUTION*8+1)
+                )        
+        self.add(entities.Camera(GRID_RESOLUTION*9,
+                                 GRID_RESOLUTION*9+1,
+                                 pol,
+                                 random.random(),
+                                 random.random())
+                 )
+        
+        pol = self.add(entities.Police(GRID_RESOLUTION*5,
+                                 GRID_RESOLUTION*8+1)
+                )        
+        self.add(entities.Camera(GRID_RESOLUTION*9,
+                                 GRID_RESOLUTION*3+1,
+                                 pol,
+                                 random.random(),
+                                 random.random())
+                 )

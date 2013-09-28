@@ -1,9 +1,15 @@
 import pygame
 import maingame
 import os
+import time
+import random
 
 placeholder_graphic = pygame.image.load(os.getcwd()+"/res/player.png")
 placeholder_graphic.set_colorkey(pygame.color.Color(255,255,255))
+
+
+placeholder_police = pygame.image.load(os.getcwd()+"/res/police.png")
+placeholder_police.set_colorkey(pygame.color.Color(255,255,255))
 
 def get_rect_overlap(rect1, rect2):
      return (
@@ -78,6 +84,10 @@ class Entity(Point):
     
     def render(self,canvas):
         pass
+   
+    def post_render(self, canvas):
+        pass
+        
 
 class LivingEntity(Entity):
     
@@ -136,3 +146,78 @@ class Player(LivingEntity):
     
     def _pressed(self,code):
         return pygame.key.get_pressed()[self.keybindings[code]]
+
+
+class Police(LivingEntity):
+     def __init__(self,x,y):
+          super(Police, self).__init__(x,y)
+          self.destination = None
+    
+     def update(self, elapsed):
+          pass
+     
+     def render(self,canvas):
+          canvas.blit(placeholder_police,
+                      (self.x - maingame.camerax,
+                       self.y - maingame.cameray -
+                           placeholder_graphic.get_size()[1])
+                      )
+     
+     def alert_to(self,maptile):
+          self.destination = maptile
+          
+
+class Camera(Entity):
+     #seconds between rotations, in seconds
+     rotation_time = 2
+     rotation_order = [0,1,0,-1]#down right up left
+
+     camera_sheet = pygame.image.load(os.getcwd()+"/res/camera.png")
+     camera_sheet.set_colorkey(pygame.color.Color(255,255,255))
+     cameraimages = [
+          camera_sheet.subsurface(pygame.rect.Rect(0,50,50,50)),
+          camera_sheet.subsurface(pygame.rect.Rect(0,100,50,50)),
+          camera_sheet.subsurface(pygame.rect.Rect(0,150,50,50)),
+          camera_sheet.subsurface(pygame.rect.Rect(0,0,50,50)),
+          ]
+     
+     def __init__(self,x,y, police, initialtime = 0, rotation_modifer = 0):
+          super(Camera, self).__init__(x,y)
+          self.last_rotation = time.time()+ initialtime
+          self.rotation_mod = rotation_modifer
+          self.rotations = random.randint(0,3)
+          self.facing = Point(Camera.rotation_order[self.rotations],Camera.rotation_order[(self.rotations+1)%4])
+          
+          self.police = police
+          
+          self.monitor_rects = [
+               pygame.rect.Rect(self.x-1,self.y,50,150),
+               pygame.rect.Rect(self.x-1,self.y,150,50),
+               pygame.rect.Rect(self.x-1,self.y-100,50,150),
+               pygame.rect.Rect(self.x-101,self.y,150,50)
+               ]
+     
+     def update(self,elapsed):
+          if(time.time() - self.last_rotation > Camera.rotation_time + self.rotation_mod):
+               self.rotations = (self.rotations+1)%4
+               self.facing.x = Camera.rotation_order[self.rotations]
+               self.facing.y = Camera.rotation_order[(self.rotations+1)%4]
+               self.last_rotation = time.time()
+               
+     
+     def render(self,canvas):
+          canvas.blit(Camera.cameraimages[self.rotations],
+                                (self.x - maingame.camerax,
+                                 self.y - maingame.cameray -
+                                 Camera.cameraimages[self.rotations].get_size()[1]))
+          
+     
+     def post_render(self,canvas):
+          pygame.draw.rect(canvas,
+                           pygame.color.Color(255,0,0,50),
+                           self.get_vision_rect().copy()
+                           .move(- maingame.camerax, - maingame.cameray),
+                           1)
+     
+     def get_vision_rect(self):
+          return self.monitor_rects[self.rotations]

@@ -13,7 +13,7 @@ def do_game():
     pygame.init()
     
     screen_surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Paints!")
+    pygame.display.set_caption("Paints")
     maingame = MainGame(screen_surface)
     
     lastUpdate = time.time()
