@@ -32,8 +32,9 @@ def do_game():
         screen_surface.fill(BACKGROUND_FILL)
         maingame.render()
         #delay blitting so that framerate is kept under FRAMERATE_CAP
-        if(newUpdate-lastUpdate < 1/FRAMERATE_CAP):
+        if(newUpdate-lastUpdate < 1 / FRAMERATE_CAP):
             time.sleep(1/FRAMERATE_CAP-newUpdate-lastUpdate)
+        lastUpdate = newUpdate
         #flip the display (show changes)
         pygame.display.flip()
 

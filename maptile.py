@@ -24,9 +24,10 @@ class MapTile(object):
         image = tile_ground
         if(self.raised):
             image = tile_raised
+        #TODO painted surfaces
         canvas.blit(image,
                     (self.gridx * maingame.GRID_RESOLUTION - 
                          maingame.camerax ,
-                     self.gridy * maingame.GRID_RESOLUTION -
+                     (self.gridy + 1) * maingame.GRID_RESOLUTION -
                          maingame.cameray - image.get_size()[1])
                     )
