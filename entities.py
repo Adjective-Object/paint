@@ -166,9 +166,10 @@ class Player(LivingEntity):
           self.size = Point(20,20)
           self.rect_offset = Point(15,10)
           self.bomb = True
+          self.explosion = pygame.mixer.Sound(os.getcwd()+"/res/bomb_noise.wav")
           self.player_number = n
           self.bombcooldown = 0
-          self.collides_terrain = False          
+          self.collides_terrain = True          
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
@@ -201,8 +202,10 @@ class Player(LivingEntity):
           
           if(self._pressed("BOMB") and self.bombcooldown<=0 and self.bomb):
                self._bomb(self.facing, self._get_tile())
+
                self.bombcooldown = Player.BOMB_COOLDOWN
-               pass#TODO BOMB SOUNDS
+               pass#TODO BOMB SOUNDS          
+               
           elif(self._pressed("BOMB")):
                pass#TODO fail sounds
                
@@ -223,6 +226,7 @@ class Player(LivingEntity):
           tile.player_number = self.player_number
           if not(tile.get_neighbor(self.facing).raised):
              self._bomb(direction, tile.get_neighbor(self.facing))
+             self.explosion.play()
           
                
 

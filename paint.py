@@ -1,6 +1,7 @@
 import pygame
 import time
 import sys
+import os
 from maingame import MainGame
 
 SCREEN_WIDTH = 800
@@ -23,7 +24,8 @@ def do_game():
          lambda : maingame.render(),#rendering game
          lambda initial: (time.time()-initial)<=2)#ease for 2s
     """ 
-    
+    pygame.mixer.music.load(os.getcwd()+"/res/song.wav")
+    pygame.mixer.music.play(-1)
     loop(screen_surface,
          lambda elapsed: maingame.main_loop(elapsed),#main loop of game
          lambda : maingame.render()) #rendering it
@@ -53,4 +55,3 @@ def loop(screen_surface, loopfn, dorender, loopcontrol=lambda initialTime: True 
         
 if __name__ == "__main__":
     do_game()
-    """test"""
