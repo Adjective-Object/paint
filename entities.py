@@ -7,10 +7,6 @@ import random
 placeholder_graphic = pygame.image.load(os.getcwd()+"/res/player.png")
 placeholder_graphic.set_colorkey(pygame.color.Color(255,255,255))
 
-
-placeholder_police = pygame.image.load(os.getcwd()+"/res/police.png")
-placeholder_police.set_colorkey(pygame.color.Color(255,255,255))
-
 def get_rect_overlap(rect1, rect2):
      return (
         rect1.right-rect2.left if rect1.centerx<rect2.centerx else -(rect2.right - rect1.left),
@@ -18,6 +14,9 @@ def get_rect_overlap(rect1, rect2):
         rect1,
         rect2
         )
+
+def get_sign(number):
+     return number/abs(number)
 
 class Point(object):
     def __init__(self,x,y):
@@ -121,6 +120,7 @@ class Player(LivingEntity):
         self.friction = 0.9
         self.size = Point(20,20)
         self.rect_offset = Point(15,10)
+        self.facing = 0#down, right, up left
     
     def update(self,elapsed):
         super(Player,self).update(elapsed)
@@ -149,22 +149,58 @@ class Player(LivingEntity):
 
 
 class Police(LivingEntity):
+     
+     SPEED=10
+     
+     placeholder_police = pygame.image.load(os.getcwd()+"/res/police.png")
+     placeholder_police.set_colorkey(pygame.color.Color(255,255,255))     
+     policeimages = [
+          placeholder_police.subsurface(pygame.rect.Rect(0,50,50,50)),
+          placeholder_police.subsurface(pygame.rect.Rect(0,100,50,50)),
+          placeholder_police.subsurface(pygame.rect.Rect(0,150,50,50)),
+          placeholder_police.subsurface(pygame.rect.Rect(0,0,50,50)),
+               ]
+     
+     path = []
+     
      def __init__(self,x,y):
           super(Police, self).__init__(x,y)
           self.destination = None
-    
+     
      def update(self, elapsed):
-          pass
+          if(self.destination == None and random.random()<0.2*elapsed):
+               self.facing = randint(0,3)
+          else:
+               if(self.destination == self._get_tile()):
+                    self.destination = None
+               else:
+                    if(abs(self.x - self.path[-1].x)<self.speed*elapsed and
+                       abs(self.y - self.path[-1].y)<self.speed*elapsed):
+                         self.x = self.path[-1].x
+                         self.y = self.path[-1].y
+                         self.path = self.path[0:-1]
+                    else:
+                         if(self.x!=self.path[-1].x):
+                              self.velocity.x=Police.SPEED * get_sign(self.x-self.path[-1].x)
+                         else:
+                              self.velocity.y=Police.SPEED * get_sign(self.y-self.path[-1].y)
+                              
      
      def render(self,canvas):
           canvas.blit(placeholder_police,
                       (self.x - maingame.camerax,
                        self.y - maingame.cameray -
-                           placeholder_graphic.get_size()[1])
+                           self.policeimages[self.facing].get_size()[1])
                       )
      
      def alert_to(self,maptile):
           self.destination = maptile
+          self.path = self.find_path(self._get_tile(),self.destinaton)#TODO pathfinding
+          
+     def find_path(self,current_tile, destination, workingTiles):
+          
+          
+           
           
 
 class Camera(Entity):
@@ -185,9 +221,7 @@ class Camera(Entity):
           super(Camera, self).__init__(x,y)
           self.last_rotation = time.time()+ initialtime
           self.rotation_mod = rotation_modifer
-          self.rotations = random.randint(0,3)
-          self.facing = Point(Camera.rotation_order[self.rotations],Camera.rotation_order[(self.rotations+1)%4])
-          
+          self.facing = random.randint(0,3)          
           self.police = police
           
           self.monitor_rects = [
@@ -199,17 +233,15 @@ class Camera(Entity):
      
      def update(self,elapsed):
           if(time.time() - self.last_rotation > Camera.rotation_time + self.rotation_mod):
-               self.rotations = (self.rotations+1)%4
-               self.facing.x = Camera.rotation_order[self.rotations]
-               self.facing.y = Camera.rotation_order[(self.rotations+1)%4]
+               self.facing  = (self.facing+1)%4
                self.last_rotation = time.time()
                
      
      def render(self,canvas):
-          canvas.blit(Camera.cameraimages[self.rotations],
+          canvas.blit(Camera.cameraimages[self.facing],
                                 (self.x - maingame.camerax,
                                  self.y - maingame.cameray -
-                                 Camera.cameraimages[self.rotations].get_size()[1]))
+                                 Camera.cameraimages[self.facing].get_size()[1]))
           
      
      def post_render(self,canvas):
@@ -220,4 +252,4 @@ class Camera(Entity):
                            1)
      
      def get_vision_rect(self):
-          return self.monitor_rects[self.rotations]
+          return self.monitor_rects[self.facing]
