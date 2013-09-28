@@ -162,6 +162,7 @@ class Player(LivingEntity):
           self.max_speed = Point(Player.MAX_SPEED,Player.MAX_SPEED)
           self.size = Point(20,20)
           self.rect_offset = Point(15,10)
+          self.ammo = 10
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
@@ -188,7 +189,12 @@ class Player(LivingEntity):
                self.velocity.y += (0-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)              
           
           if(self._pressed("PAINT")):
-              self._get_tile().paint_color = self.color
+              if(self.ammo > 0):
+                   #Definitely a better way to do this
+                  temp = self._get_tile().paint_color
+                  self._get_tile().paint_color = self.color
+                  if not(temp == self.color):
+                      self.ammo -= 1
       
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],
