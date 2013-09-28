@@ -215,11 +215,11 @@ class Player(LivingEntity):
         been caught by a guard.
         '''    	
         #TODO: fix so it actually works
-        if (self.stasis==0 and police.get_rect().colliderect(self.get_rect())):
+        while (self.stasis==0 and police.get_rect().colliderect(self.get_rect())):
             self.velocity.y = 0
             self.velocity.x = 0
-            
             police.wander()
+            
         
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],

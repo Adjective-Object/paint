@@ -43,7 +43,7 @@ class MainGame(GameView):
 
     def main_loop(self, elapsed):
         """
-        Loops the game logic.
+        Loops the game logic
         """
         for entity in self.entities:
             if(entity.stasis==0):
