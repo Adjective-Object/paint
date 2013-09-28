@@ -35,6 +35,7 @@ class Entity(Point):
         self.facing = 0#down, right, up left
         self.collides_terrain = False
         self.alive=True
+        self.stasis = 0
     
     def set_parent(self, parent):
         self.parent = parent
@@ -219,6 +220,7 @@ class Police(LivingEntity):
      
      path = []
      
+     
      def __init__(self,x,y):
           super(Police, self).__init__(x,y)
           self.destination = None
@@ -258,6 +260,12 @@ class Police(LivingEntity):
           super(Police,self).update(elapsed)
                               
      
+     def wander(self):
+          while(self.destination is None or self.destination.raised):
+               self.destination = random.choice(random.choice(self.parent.map_tiles))
+          self.path = self.find_path(self._get_tile(),self.destination)[1:]
+
+     
      def render(self,canvas):
           canvas.blit(Police.policeimages[self.facing],
                       (self.x - self.parent.camerax,
@@ -274,10 +282,10 @@ class Police(LivingEntity):
           ][self.facing]
      
      def alert_to(self,maptile,isfast=False):
-          if(isfast and self.speed!=Police.SPEED_FAST):
-               self.fasttimer = time.time()
-               self.speed = Police.SPEED_FAST
           if(self.destination is None):
+               if(isfast and self.speed!=Police.SPEED_FAST):
+                              self.fasttimer = time.time()
+                              self.speed = Police.SPEED_FAST               
                self.destination = maptile
                self.path = self.find_path(self._get_tile(),self.destination)[1:]
                #print self.path
@@ -363,12 +371,16 @@ class Camera(Entity):
 class Exclamation(Entity):
      
      mark = pygame.image.load(os.getcwd()+"/res/exclaim.png")     
+     blip = None
 
      def __init__(self,x,y):
           super(Exclamation,self).__init__(x,y)
           self.velocity.y=-50
           self.friction=5
           self.age=0
+          if(Exclamation.blip is None):
+               Exclamation.blip = pygame.mixer.Sound(os.getcwd()+"/res/blip_noticed.wav")
+          Exclamation.blip.play()
      
      def update(self,elapsed):
           super(Exclamation,self).update(elapsed)

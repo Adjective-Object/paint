@@ -40,7 +40,11 @@ class MainGame(GameView):
     def main_loop(self, elapsed):
         """moves forward the game"""
         for entity in self.entities:
-            entity.update(elapsed)
+            if(entity.stasis==0):
+                entity.update(elapsed)
+            else:
+                entity.stasis-=elapsed
+                entity.stasis = max (entity.stasis,0)
         
         for dead in filter(lambda ent: not ent.alive, self.entities):
             self.entities.remove(dead)
@@ -59,6 +63,9 @@ class MainGame(GameView):
             for player in self.players:
                 if(police.get_vision_rect().colliderect(player.get_rect())):
                     police.alert_to(player._get_tile(), True)
+                if(player.stasis==0 and police.get_rect().colliderect(player.get_rect())):
+                    player.stais=5
+                    police.wander()
         
         
     def render(self):
