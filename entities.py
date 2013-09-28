@@ -34,6 +34,7 @@ class Entity(Point):
         self.rect_offset = Point(0,0)
         self.facing = 0#down, right, up left
         self.collides_terrain = False
+        self.alive=True
     
     def set_parent(self, parent):
         self.parent = parent
@@ -192,8 +193,8 @@ class Player(LivingEntity):
       
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],
-                      (self.x - maingame.camerax,
-                       self.y - maingame.cameray -
+                      (self.x - self.parent.camerax,
+                       self.y - self.parent.cameray -
                            Player.placeholders[self.facing].get_size()[1])
                       )
       
@@ -203,7 +204,9 @@ class Player(LivingEntity):
 
 class Police(LivingEntity):
      
-     SPEED=100
+     SPEED_DEFAULT=200
+     SPEED_FAST=200
+     FAST_TIME=1.5
      
      placeholder_police = pygame.image.load(os.getcwd()+"/res/police.png")
      placeholder_police.set_colorkey(pygame.color.Color(255,255,255))     
@@ -220,47 +223,65 @@ class Police(LivingEntity):
           super(Police, self).__init__(x,y)
           self.destination = None
           self.size = Point(20,20)
+          self.speed = Police.SPEED_DEFAULT
+          self.fasttimer=0
      
      def update(self, elapsed):
           self.velocity.y=0
           self.velocity.x=0
+          
           if(self.destination is None):
                if(random.random()<0.2*elapsed):
                     self.facing= (self.facing-1)%3
           else:
+               if(self.speed==Police.SPEED_FAST and time.time()-self.fasttimer>Police.FAST_TIME):
+                    self.speed = Police.SPEED_DEFAULT
+               
                if(self.destination == self._get_tile() or
-                  (len(self.path)==1 and elapsed*random.random()<=0.2 ) ):#reduce chance of stacking
+                  (len(self.path)==1 and elapsed*random.random()<=0.2 and not self.speed==Police.SPEED_FAST) ):#reduce chance of stacking
                     self.look_at(self.destination)
                     self.destination = None
                else:
                     #print abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION), abs(self.y - self.path[0].gridy*maingame.GRID_RESOLUTION), Police.SPEED
-                    if(abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION)<Police.SPEED*elapsed and
-                       abs(self.y - (self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION)<Police.SPEED*elapsed):
+                    if(abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION)<self.speed*elapsed and
+                       abs(self.y - (self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION)<self.speed*elapsed):
                          self.x = self.path[0].gridx*maingame.GRID_RESOLUTION
                          self.y = (self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION
                          self.path = self.path[1:]
                     else:
                          if(self.x!=self.path[0].gridx*maingame.GRID_RESOLUTION):
-                              self.velocity.x=Police.SPEED * get_sign(self.path[0].gridx*maingame.GRID_RESOLUTION-self.x)
+                              self.velocity.x=self.speed * get_sign(self.path[0].gridx*maingame.GRID_RESOLUTION-self.x)
                               self.facing = 1+2*(self.velocity.x<0)
                          if(self.y!=(self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION):
-                              self.velocity.y=Police.SPEED * get_sign((self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION-self.y)
+                              self.velocity.y=self.speed * get_sign((self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION-self.y)
                               self.facing = 0+2*(self.velocity.y<0)
           super(Police,self).update(elapsed)
                               
      
      def render(self,canvas):
           canvas.blit(Police.policeimages[self.facing],
-                      (self.x - maingame.camerax,
-                       self.y - maingame.cameray -
+                      (self.x - self.parent.camerax,
+                       self.y - self.parent.cameray -
                            Police.policeimages[self.facing].get_size()[1])
                       )
      
-     def alert_to(self,maptile):
+     def get_vision_rect(self):
+          return[
+               pygame.rect.Rect(self.x,self.y,50,200),
+               pygame.rect.Rect(self.x,self.y,200,50),
+               pygame.rect.Rect(self.x,self.y-150,50,200),
+               pygame.rect.Rect(self.x-150,self.y,200,50),
+          ][self.facing]
+     
+     def alert_to(self,maptile,isfast=False):
+          if(isfast and self.speed!=Police.SPEED_FAST):
+               self.fasttimer = time.time()
+               self.speed = Police.SPEED_FAST
           if(self.destination is None):
                self.destination = maptile
                self.path = self.find_path(self._get_tile(),self.destination)[1:]
                #print self.path
+               self.parent.add(Exclamation(self.x+20, self.y))
           
      def find_path(self, current_tile, destination, path=[], cumscore=0):
           if current_tile == destination:
@@ -310,10 +331,10 @@ class Camera(Entity):
           self.facing = random.randint(0,3)
           
           self.monitor_rects = [
-               pygame.rect.Rect(self.x-1,self.y,50,150),
-               pygame.rect.Rect(self.x-1,self.y,150,50),
-               pygame.rect.Rect(self.x-1,self.y-100,50,150),
-               pygame.rect.Rect(self.x-101,self.y,150,50)
+               pygame.rect.Rect(self.x-1,self.y+50,50,100),
+               pygame.rect.Rect(self.x+49,self.y,100,50),
+               pygame.rect.Rect(self.x-1,self.y-100,50,100),
+               pygame.rect.Rect(self.x-101,self.y,100,50)
                ]
      
      def update(self,elapsed):
@@ -324,8 +345,8 @@ class Camera(Entity):
      
      def render(self,canvas):
           canvas.blit(Camera.cameraimages[self.facing],
-                                (self.x - maingame.camerax,
-                                 self.y - maingame.cameray -
+                                (self.x - self.parent.camerax,
+                                 self.y - self.parent.cameray -
                                  Camera.cameraimages[self.facing].get_size()[1]))
           
      
@@ -333,8 +354,30 @@ class Camera(Entity):
           pygame.draw.rect(canvas,
                            pygame.color.Color(255,0,0,50),
                            self.get_vision_rect().copy()
-                           .move(- maingame.camerax, - maingame.cameray),
+                           .move(- self.parent.camerax, - self.parent.cameray),
                            1)
      
      def get_vision_rect(self):
           return self.monitor_rects[self.facing]
+
+class Exclamation(Entity):
+     
+     mark = pygame.image.load(os.getcwd()+"/res/exclaim.png")     
+
+     def __init__(self,x,y):
+          super(Exclamation,self).__init__(x,y)
+          self.velocity.y=-50
+          self.friction=5
+          self.age=0
+     
+     def update(self,elapsed):
+          super(Exclamation,self).update(elapsed)
+          self.velocity.y-=self.velocity.y*10*elapsed
+          self.age+=elapsed
+          if(self.age>=1):
+             self.alive=False
+          
+     
+     def render(self,canvas):
+          Exclamation.mark.set_alpha( 255*(1 - self.age/1) )     
+          canvas.blit(Exclamation.mark,(self.x,self.y))

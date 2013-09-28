@@ -18,7 +18,12 @@ class GameView(object):
         """renders the gameview to the canvas"""
         pass
     
+    def easing(self, elapsed):
+        """eases in the objects to be all juicy and shit"""
+        pass
+    
     def main_loop(self, elapsed):
         """the main loop of this GameView. Iterates the world by the
            elapsed number of seconds
         """
+        pass

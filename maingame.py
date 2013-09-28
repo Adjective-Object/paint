@@ -11,8 +11,7 @@ GRID_RESOLUTION = 50
 MAP_GRID_SIZE = Point(13,13)
 MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION,
                  MAP_GRID_SIZE.y * GRID_RESOLUTION)
-camerax = -20
-cameray = -40
+
 
 class MainGame(GameView):
     """The main game class"""    
@@ -25,12 +24,27 @@ class MainGame(GameView):
         self.cameras = []
         self.players = []
         self.police = []
-        self._populate_map()
         
+        self.camerax = -20
+        self.cameray = -40
+        
+        self._populate_map()
+
+        self.ease_elapsed = 0
+        
+    def easing(self,elapsed):
+        self.ease_elapsed+=elapsed
+        self.cameray = -800*(1-(self.ease_elapsed))-20
+        print (self.cameray)
+
     def main_loop(self, elapsed):
         """moves forward the game"""
         for entity in self.entities:
             entity.update(elapsed)
+        
+        for dead in filter(lambda ent: not ent.alive, self.entities):
+            self.entities.remove(dead)
+        
         #TODO map behaviors
         for camera in self.cameras:
             for player in self.players:
@@ -40,12 +54,12 @@ class MainGame(GameView):
                         if(i._get_tile().manhattan(player._get_tile())<closest._get_tile().manhattan(player._get_tile())):
                             closest=i
                     closest.alert_to(player._get_tile())
-        """
+        
         for police in self.police:
             for player in self.players:
                 if(police.get_vision_rect().colliderect(player.get_rect())):
-                    police.alert_to(player._get_tile)
-        """
+                    police.alert_to(player._get_tile(), True)
+        
         
     def render(self):
         for row_number in range(len(self.map_tiles)):
@@ -86,7 +100,7 @@ class MainGame(GameView):
                           (x%2 == 0 and y%2 == 0) or
                           ((x)%3 == 0 and (y)%3 == 0)
                           )
-                retmap[y].append(MapTile(x,y,raised))
+                retmap[y].append(MapTile(x,y,self,raised))
         
         for y in range(len(retmap)):
             for x in range(len(retmap)):

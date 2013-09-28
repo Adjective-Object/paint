@@ -17,9 +17,10 @@ mask_up_right = pygame.mask.from_surface(
 
 class MapTile(object):
     
-    def __init__(self, x, y, raised=False):
+    def __init__(self, x, y, parent, raised=False):
         self.paint_color = None
         self.raised = raised
+        self.parent = parent
         
         self.gridx = x
         self.gridy = y
@@ -57,9 +58,9 @@ class MapTile(object):
         #TODO painted surfaces
         canvas.blit(image,
                     (self.gridx * maingame.GRID_RESOLUTION - 
-                         maingame.camerax ,
+                         self.parent.camerax ,
                      (self.gridy + 1) * maingame.GRID_RESOLUTION -
-                         maingame.cameray - image.get_size()[1])
+                         self.parent.cameray - image.get_size()[1])
                     )
         if(self.paint_color is not None):
             #TODO: masking images instead of tile tinting
@@ -68,9 +69,9 @@ class MapTile(object):
             x.fill(self.paint_color)
             canvas.blit(x,
                     (self.gridx * maingame.GRID_RESOLUTION - 
-                         maingame.camerax ,
+                         self.parent.camerax ,
                      (self.gridy + 1) * maingame.GRID_RESOLUTION -
-                         maingame.cameray - image.get_size()[1])
+                         self.parent.cameray - image.get_size()[1])
                     )
     def __repr__(self):
         return "[Tile %s,%s  %s]"%(self.gridx, self.gridy, self.score)
