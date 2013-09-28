@@ -189,12 +189,12 @@ class Player(LivingEntity):
                self.velocity.y += (0-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)              
           
           if(self._pressed("PAINT")):
-              if(self.ammo > 0):
-                   #Definitely a better way to do this
-                  temp = self._get_tile().paint_color
+              if(self.ammo > 0 and not (self._get_tile().paint_color == self.color)):
                   self._get_tile().paint_color = self.color
-                  if not(temp == self.color):
-                      self.ammo -= 1
+                  self.ammo -= 1
+                      
+                      
+          
       
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],
