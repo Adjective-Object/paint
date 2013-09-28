@@ -24,6 +24,7 @@ class MainGame(GameView):
         self.entities = []
         self.cameras = []
         self.players = []
+        self.police = []
         self._populate_map()
         
     def main_loop(self, elapsed):
@@ -34,8 +35,18 @@ class MainGame(GameView):
         for camera in self.cameras:
             for player in self.players:
                 if(camera.get_vision_rect().colliderect(player.get_rect())):
-                    camera.police.alert_to(player._get_tile())
-    
+                    closest = self.police[0]
+                    for i in self.police:
+                        if(i._get_tile().manhattan(player._get_tile())<closest._get_tile().manhattan(player._get_tile())):
+                            closest=i
+                    closest.alert_to(player._get_tile())
+        """
+        for police in self.police:
+            for player in self.players:
+                if(police.get_vision_rect().colliderect(player.get_rect())):
+                    police.alert_to(player._get_tile)
+        """
+        
     def render(self):
         for row_number in range(len(self.map_tiles)):
             for tile in self.map_tiles[row_number]:
@@ -57,7 +68,9 @@ class MainGame(GameView):
             self.cameras.append(entity)
         if(isinstance(entity, entities.Player)):
             self.players.append(entity)
-        
+        if(isinstance(entity, entities.Police)):
+            self.police.append(entity)        
+    
         return entity
     
     #begin construction functions
@@ -98,7 +111,6 @@ class MainGame(GameView):
                 )        
         self.add(entities.Camera(GRID_RESOLUTION*3,
                                  GRID_RESOLUTION*3+1,
-                                 pol,
                                  random.random(),
                                  random.random())
                  )
@@ -108,7 +120,6 @@ class MainGame(GameView):
                 )        
         self.add(entities.Camera(GRID_RESOLUTION*3,
                                  GRID_RESOLUTION*9+1,
-                                 pol,
                                  random.random(),
                                  random.random())
                  )
@@ -118,7 +129,6 @@ class MainGame(GameView):
                 )        
         self.add(entities.Camera(GRID_RESOLUTION*9,
                                  GRID_RESOLUTION*9+1,
-                                 pol,
                                  random.random(),
                                  random.random())
                  )
@@ -128,7 +138,6 @@ class MainGame(GameView):
                 )        
         self.add(entities.Camera(GRID_RESOLUTION*9,
                                  GRID_RESOLUTION*3+1,
-                                 pol,
                                  random.random(),
                                  random.random())
                  )

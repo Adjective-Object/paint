@@ -37,13 +37,15 @@ class MapTile(object):
                                 maingame.GRID_RESOLUTION,
                                 maingame.GRID_RESOLUTION)
 
-    def get_surrounding(self):
+    def get_surrounding(self, noWalls = False):
         surr =  [self.neighbor_down, self.neighbor_right,
                  self.neighbor_up, self.neighbor_left]
         while None in surr:
             surr.remove(None)
-            
+        if(noWalls):
+            surr=filter(lambda t: t.raised==False, surr)
         return surr
+    
 
     def manhattan(self, other):
         return abs(self.gridx-other.gridx)+abs(self.gridy-other.gridy)

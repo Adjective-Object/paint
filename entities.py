@@ -16,7 +16,7 @@ def get_rect_overlap(rect1, rect2):
         )
 
 def get_sign(number):
-     return number/abs(number)
+     return int(number/abs(number))
 
 class Point(object):
     def __init__(self,x,y):
@@ -103,6 +103,15 @@ class LivingEntity(Entity):
     def render(self,canvas):
         #TODO frame selection from animation
         pass
+   
+    def look_at(self, destinationTile):
+        dx = int(destinationTile.gridx*maingame.GRID_RESOLUTION)
+        dy = int((destinationTile.gridy+0.5)*maingame.GRID_RESOLUTION)
+        
+        if(abs(self.x-dx)>5):
+          self.facing = 1 + 2*get_sign(dx-self.x)
+        elif (abs(self.y-dy)>10):
+          self.facing = 2*get_sign(dy-self.y)   
 
 class Player(LivingEntity):
     
@@ -147,7 +156,7 @@ class Player(LivingEntity):
     
     def _pressed(self,code):
         return pygame.key.get_pressed()[self.keybindings[code]]
-
+             
 
 class Police(LivingEntity):
      
@@ -174,9 +183,11 @@ class Police(LivingEntity):
           self.velocity.x=0
           if(self.destination is None):
                if(random.random()<0.2*elapsed):
-                    self.facing = random.randint(0,3)
+                    self.facing= (self.facing-1)%3
           else:
-               if(self.destination == self._get_tile()):
+               if(self.destination == self._get_tile() or
+                  (len(self.path)==1 and elapsed*random.random()<=0.2 ) ):#reduce chance of stacking
+                    self.look_at(self.destination)
                     self.destination = None
                else:
                     #print abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION), abs(self.y - self.path[0].gridy*maingame.GRID_RESOLUTION), Police.SPEED
@@ -189,7 +200,7 @@ class Police(LivingEntity):
                          if(self.x!=self.path[0].gridx*maingame.GRID_RESOLUTION):
                               self.velocity.x=Police.SPEED * get_sign(self.path[0].gridx*maingame.GRID_RESOLUTION-self.x)
                               self.facing = 1+2*(self.velocity.x<0)
-                         else:
+                         if(self.y!=(self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION):
                               self.velocity.y=Police.SPEED * get_sign((self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION-self.y)
                               self.facing = 0+2*(self.velocity.y<0)
           super(Police,self).update(elapsed)
@@ -203,15 +214,15 @@ class Police(LivingEntity):
                       )
      
      def alert_to(self,maptile):
-          if(self.destination is not maptile):
+          if(self.destination is None):
                self.destination = maptile
-               self.path = self.find_path(self._get_tile(),self.destination)#TODO pathfinding
+               self.path = self.find_path(self._get_tile(),self.destination)[1:]
                print self.path
           
      def find_path(self, current_tile, destination, path=[], cumscore=0):
           if current_tile == destination:
                return path+[current_tile]
-          workingtiles=filter(lambda t: t.raised==False, current_tile.get_surrounding())
+          workingtiles=current_tile.get_surrounding(True)
           
           for i in path:
                if i in workingtiles:
@@ -249,12 +260,11 @@ class Camera(Entity):
           camera_sheet.subsurface(pygame.rect.Rect(0,0,50,50)),
           ]
      
-     def __init__(self,x,y, police, initialtime = 0, rotation_modifer = 0):
+     def __init__(self,x,y, initialtime = 0, rotation_modifer = 0):
           super(Camera, self).__init__(x,y)
           self.last_rotation = time.time()+ initialtime
           self.rotation_mod = rotation_modifer
-          self.facing = random.randint(0,3)          
-          self.police = police
+          self.facing = random.randint(0,3)
           
           self.monitor_rects = [
                pygame.rect.Rect(self.x-1,self.y,50,150),
