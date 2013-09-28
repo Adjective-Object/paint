@@ -7,7 +7,7 @@ class Zone(object):
     raised = False
     
     def __init__(self):
-        zone = []
+        self.tile_contents = []
         
     def add(self, mp):
         """
@@ -16,8 +16,8 @@ class Zone(object):
         zone control calculations
         """
         
-        self.zone.append(mp)
-        if(self.zone[len(self.zone)].raised == False):
+        self.tile_contents.append(mp)
+        if(self.tile_contents[-1].raised == False):
             self.paint_blocks += 1.00
     
     def get_owner(self, n):
@@ -38,14 +38,35 @@ class Zone(object):
         Updates player_number
         """
         self.player_number = self.get_owner(n)
-        
+    
+    def get_dominant_color(self):
+	colors = [None]
+	frequencies = [0]
+	
+	for tile in self.tile_contents:
+	    color = tile.paint_color
+	    if color is not None:
+		if not color in colors:
+		    colors.append(color)
+		    frequencies.append(1)
+		else:
+		    frequencies[colors.index(color)] += 1
+	
+	freqs = sorted(colors, key=lambda c: (frequencies[colors.index(c)]), reverse=True)
+	if(len(freqs)>=2 and frequencies[colors.index(freqs[0])] == frequencies[colors.index(freqs[1])]):
+	    return None
+	return freqs[0]
+    
     def get_percent(self, n):
         """
         Returns percent control of player n
         """
         controlled = 0.00
-        for i in range(len(self.zone)):
-            if(self.zone[i].player_number == n):
+        for i in range(len(self.tile_contents)):
+            if(self.tile_contents[i].player_number == n):
                 controlled += 1.00
         
         return float(controlled / self.paint_blocks)
+
+    def __repr__(self):
+        return "[ZONE %s]"%(len(self.tile_contents))

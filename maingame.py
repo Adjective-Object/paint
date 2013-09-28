@@ -9,7 +9,7 @@ import random
 
 
 GRID_RESOLUTION = 50
-MAP_GRID_SIZE = Point(13,13)
+MAP_GRID_SIZE = Point(14,14)
 MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION,
                  MAP_GRID_SIZE.y * GRID_RESOLUTION)
 
@@ -22,8 +22,9 @@ class MainGame(GameView):
     def __init__(self,canvas):
         super(MainGame, self).__init__(canvas)
         
+        self.zones = []        
         self.map_tiles = self._make_map()
-        self.master_zone = Zone()
+        
         self.entities = []
         self.cameras = []
         self.players = []
@@ -40,7 +41,7 @@ class MainGame(GameView):
         self.ease_elapsed+=elapsed
         self.cameray = -800*(1-(self.ease_elapsed))-20
         print (self.cameray)
-
+    
     def main_loop(self, elapsed):
         """
         Loops the game logic.
@@ -64,6 +65,7 @@ class MainGame(GameView):
                         if(i._get_tile().manhattan(player._get_tile())<closest._get_tile().manhattan(player._get_tile())):
                             closest=i
                     closest.alert_to(player, player._get_tile())
+
         
         for police in self.police:
             for player in self.players:
@@ -86,6 +88,19 @@ class MainGame(GameView):
         
         for entity in self.entities:
             entity.post_render(self.canvas)
+            
+        for zone in self.zones:
+            color = zone.get_dominant_color()
+            if(color is not None):
+                for tile in zone.tile_contents:
+                    pygame.draw.rect(self.canvas,
+                                     color,
+                                     pygame.rect.Rect(
+                                         tile.gridx * GRID_RESOLUTION - self.camerax,
+                                         tile.gridy * GRID_RESOLUTION - self.cameray,
+                                         GRID_RESOLUTION,
+                                         GRID_RESOLUTION),
+                                     1)
     
     #begin helper functions
     def add(self, entity):
@@ -102,7 +117,10 @@ class MainGame(GameView):
         return entity
     
     #begin construction functions
-    def _make_map(self):
+    def _make_map(self):            
+        for x in range(MAP_GRID_SIZE.x/3):
+            for y in range(MAP_GRID_SIZE.y/3):
+                self.zones.append(Zone())
         
         retmap = []
         for y in range(MAP_GRID_SIZE.y):
@@ -111,13 +129,13 @@ class MainGame(GameView):
                 raised = (x == 0 or
                           y == 0 or
                           x == (MAP_GRID_SIZE.x-1) or
-                          y == (MAP_GRID_SIZE.y-1) or
-                          (x%2 == 0 and y%2 == 0) or
-                          ((x)%3 == 0 and (y)%3 == 0)
+                          y == (MAP_GRID_SIZE.y-1)
                           )
                 retmap[y].append(MapTile(x,y,self,raised))
-                
-                
+                if(y!=0 and x!=0 and x!= (MAP_GRID_SIZE.x-1) and y!=(MAP_GRID_SIZE.y-1)):
+                    self.zones[((x-1)/(MAP_GRID_SIZE.x/3))%3 +
+                               ((y-1)/(MAP_GRID_SIZE.y/3))*3
+                               ].add(retmap[y][-1])
         
         for y in range(len(retmap)):
             for x in range(len(retmap)):
