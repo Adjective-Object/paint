@@ -31,7 +31,18 @@ class MapTile(object):
         self.neighbor_down = None
         
         self.score = 0#for pathfinding
-
+        
+    def get_neighbor(self, facing):
+        if(facing == 0):
+            return self.neighbor_down
+        elif(facing == 1):
+            return self.neighbor_right
+        elif(facing == 2):
+            return self.neighbor_up
+        else:
+            return self.neighbor_left
+        
+        
     def get_rect(self):
         return pygame.rect.Rect(self.gridx*maingame.GRID_RESOLUTION,
                                 (self.gridy)*maingame.GRID_RESOLUTION,
