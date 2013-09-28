@@ -28,12 +28,25 @@ class MapTile(object):
         self.neighbor_right = None
         self.neighbor_up = None
         self.neighbor_down = None
+        
+        self.score = 0#for pathfinding
 
     def get_rect(self):
         return pygame.rect.Rect(self.gridx*maingame.GRID_RESOLUTION,
                                 (self.gridy)*maingame.GRID_RESOLUTION,
                                 maingame.GRID_RESOLUTION,
                                 maingame.GRID_RESOLUTION)
+
+    def get_surrounding(self):
+        surr =  [self.neighbor_down, self.neighbor_right,
+                 self.neighbor_up, self.neighbor_left]
+        while None in surr:
+            surr.remove(None)
+            
+        return surr
+
+    def manhattan(self, other):
+        return abs(self.gridx-other.gridx)+abs(self.gridy-other.gridy)
 
     def render(self, canvas):
         image = tile_ground
@@ -57,5 +70,6 @@ class MapTile(object):
                      (self.gridy + 1) * maingame.GRID_RESOLUTION -
                          maingame.cameray - image.get_size()[1])
                     )
-        
+    def __repr__(self):
+        return "[Tile %s,%s  %s]"%(self.gridx, self.gridy, self.score)
             

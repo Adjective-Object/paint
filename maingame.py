@@ -34,7 +34,7 @@ class MainGame(GameView):
         for camera in self.cameras:
             for player in self.players:
                 if(camera.get_vision_rect().colliderect(player.get_rect())):
-                    camera.police.alert_to(player)
+                    camera.police.alert_to(player._get_tile())
     
     def render(self):
         for row_number in range(len(self.map_tiles)):

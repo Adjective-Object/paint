@@ -30,6 +30,8 @@ class Entity(Point):
         self.velocity = Point(0,0)
         self.friction = 0
         self.size=Point(0,0)
+        self.rect_offset = Point(0,0)
+        self.facing = 0#down, right, up left
     
     def set_parent(self, parent):
         self.parent = parent
@@ -120,7 +122,6 @@ class Player(LivingEntity):
         self.friction = 0.9
         self.size = Point(20,20)
         self.rect_offset = Point(15,10)
-        self.facing = 0#down, right, up left
     
     def update(self,elapsed):
         super(Player,self).update(elapsed)
@@ -150,13 +151,13 @@ class Player(LivingEntity):
 
 class Police(LivingEntity):
      
-     SPEED=10
+     SPEED=100
      
      placeholder_police = pygame.image.load(os.getcwd()+"/res/police.png")
      placeholder_police.set_colorkey(pygame.color.Color(255,255,255))     
      policeimages = [
-          placeholder_police.subsurface(pygame.rect.Rect(0,50,50,50)),
           placeholder_police.subsurface(pygame.rect.Rect(0,100,50,50)),
+          placeholder_police.subsurface(pygame.rect.Rect(0,50,50,50)),
           placeholder_police.subsurface(pygame.rect.Rect(0,150,50,50)),
           placeholder_police.subsurface(pygame.rect.Rect(0,0,50,50)),
                ]
@@ -166,40 +167,71 @@ class Police(LivingEntity):
      def __init__(self,x,y):
           super(Police, self).__init__(x,y)
           self.destination = None
+          self.size = Point(20,20)
      
      def update(self, elapsed):
-          if(self.destination == None and random.random()<0.2*elapsed):
-               self.facing = randint(0,3)
+          self.velocity.y=0
+          self.velocity.x=0
+          if(self.destination is None):
+               if(random.random()<0.2*elapsed):
+                    self.facing = random.randint(0,3)
           else:
                if(self.destination == self._get_tile()):
                     self.destination = None
                else:
-                    if(abs(self.x - self.path[-1].x)<self.speed*elapsed and
-                       abs(self.y - self.path[-1].y)<self.speed*elapsed):
-                         self.x = self.path[-1].x
-                         self.y = self.path[-1].y
-                         self.path = self.path[0:-1]
+                    #print abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION), abs(self.y - self.path[0].gridy*maingame.GRID_RESOLUTION), Police.SPEED
+                    if(abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION)<Police.SPEED*elapsed and
+                       abs(self.y - (self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION)<Police.SPEED*elapsed):
+                         self.x = self.path[0].gridx*maingame.GRID_RESOLUTION
+                         self.y = (self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION
+                         self.path = self.path[1:]
                     else:
-                         if(self.x!=self.path[-1].x):
-                              self.velocity.x=Police.SPEED * get_sign(self.x-self.path[-1].x)
+                         if(self.x!=self.path[0].gridx*maingame.GRID_RESOLUTION):
+                              self.velocity.x=Police.SPEED * get_sign(self.path[0].gridx*maingame.GRID_RESOLUTION-self.x)
+                              self.facing = 1+2*(self.velocity.x<0)
                          else:
-                              self.velocity.y=Police.SPEED * get_sign(self.y-self.path[-1].y)
+                              self.velocity.y=Police.SPEED * get_sign((self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION-self.y)
+                              self.facing = 0+2*(self.velocity.y<0)
+          super(Police,self).update(elapsed)
                               
      
      def render(self,canvas):
-          canvas.blit(placeholder_police,
+          canvas.blit(Police.policeimages[self.facing],
                       (self.x - maingame.camerax,
                        self.y - maingame.cameray -
-                           self.policeimages[self.facing].get_size()[1])
+                           Police.policeimages[self.facing].get_size()[1])
                       )
      
      def alert_to(self,maptile):
-          self.destination = maptile
-          self.path = self.find_path(self._get_tile(),self.destinaton)#TODO pathfinding
+          if(self.destination is not maptile):
+               self.destination = maptile
+               self.path = self.find_path(self._get_tile(),self.destination)#TODO pathfinding
+               print self.path
           
-     def find_path(self,current_tile, destination, workingTiles):
+     def find_path(self, current_tile, destination, path=[], cumscore=0):
+          if current_tile == destination:
+               return path+[current_tile]
+          workingtiles=filter(lambda t: t.raised==False, current_tile.get_surrounding())
           
+          for i in path:
+               if i in workingtiles:
+                    workingtiles.remove(i)
           
+          for i in workingtiles:
+               i.score = cumscore + i.manhattan(destination)
+          workingtiles = sorted(workingtiles, key = lambda t: t.score)
+          
+          #print workingtiles
+          
+          for tile in workingtiles:
+               if tile is destination:
+                    return path+[current_tile, tile]
+               else:
+                    s = self.find_path(tile, destination, path+[current_tile], cumscore+tile.score)
+                    if(s!=None):
+                         return s
+          return None
+                    
            
           
 
