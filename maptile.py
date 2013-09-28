@@ -6,6 +6,8 @@ import maingame
 tile_raised = pygame.image.load(os.getcwd()+"/res/tile_raised.png")
 tile_ground = pygame.image.load(os.getcwd()+"/res/tile.png")
 
+mask_tile_down = pygame.image.load(os.getcwd()+"/res/tile_down_mask.png")
+
 class MapTile(object):
     
     def __init__(self, x, y, raised=False):

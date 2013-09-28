@@ -7,11 +7,11 @@ from entities import Point
 
 
 GRID_RESOLUTION = 50
-MAP_GRID_SIZE = Point(10,10)
+MAP_GRID_SIZE = Point(12,12)
 MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION,
                  MAP_GRID_SIZE.y * GRID_RESOLUTION)
-camerax = -150
-cameray = -80
+camerax = -120
+cameray = -120
 
 class MainGame(GameView):
     """The main game class"""    
@@ -38,7 +38,7 @@ class MainGame(GameView):
                 tile.render(self.canvas)
             
             for entity in self.entities:
-                if( int(entity.y/GRID_RESOLUTION) ==  row_number):
+                if( int((entity.y-1)/GRID_RESOLUTION) ==  row_number):
                     entity.render(self.canvas)
     
     #begin helper functions
@@ -55,6 +55,7 @@ class MainGame(GameView):
                 raised = (x == 0 or
                           y == 0 or
                           x == (MAP_GRID_SIZE.x-1) or
-                          y == (MAP_GRID_SIZE.y-1))
+                          y == (MAP_GRID_SIZE.y-1) or
+                          randint(0,1))
                 map[y].append(MapTile(x,y,raised))
         return map

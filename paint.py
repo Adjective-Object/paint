@@ -4,7 +4,7 @@ import sys
 from maingame import MainGame
 
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_HEIGHT = 800
 FRAMERATE_CAP = 60
 
 BACKGROUND_FILL = pygame.color.Color(255, 255, 255, 255)

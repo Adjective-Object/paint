@@ -48,19 +48,8 @@ class Entity(Point):
             self.velocity.y = 0
     
     def _terrain_collision(self):
-        leftbound = int(self.x/maingame.GRID_RESOLUTION)
-        bottombound = int(self.y/maingame.GRID_RESOLUTION)
-        rightbound = int(self.x/maingame.GRID_RESOLUTION)+1
-        topbound = int(self.y/maingame.GRID_RESOLUTION)-1        
-    
-        if(self.velocity.y<0 and self.parent.map_tiles[leftbound][topbound].raised):
-            self.velocity.y = 0
-            self.y = (topbound+2) * maingame.GRID_RESOLUTION
-        if(self.velocity.x<0 and self.parent.map_tiles[leftbound][topbound].raised):
-            self.velocity.x = 0
-            self.y = (topbound+2) * maingame.GRID_RESOLUTION
+        pass#TODO: this
         
-    
     def render(self,canvas):
         pass
 
@@ -108,13 +97,21 @@ class Player(Entity):
             self.velocity.y -= Player.SPEED * elapsed
         if(self._pressed("DOWN")):
             self.velocity.y += Player.SPEED * elapsed
+        
+        if(self._pressed("PAINT")):
+            self._get_tile().paint_color = self.color
+    
     
     def render(self,canvas):
         canvas.blit(placeholder_graphic,
                     (self.x - maingame.camerax,
                      self.y - maingame.cameray -
                          placeholder_graphic.get_size()[1])
-                    ) 
+                    )
+        if(self.)
+
+    def _get_tile(self):
+        return self.parent.map_tiles[int(self.y/maingame.GRID_RESOLUTION)][int(self.x/maingame.GRID_RESOLUTION)]
     
     def _pressed(self,code):
         return pygame.key.get_pressed()[self.keybindings[code]]
