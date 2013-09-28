@@ -101,14 +101,12 @@ class Player(Entity):
         if(self._pressed("PAINT")):
             self._get_tile().paint_color = self.color
     
-    
     def render(self,canvas):
         canvas.blit(placeholder_graphic,
                     (self.x - maingame.camerax,
                      self.y - maingame.cameray -
                          placeholder_graphic.get_size()[1])
                     )
-        if(self.)
 
     def _get_tile(self):
         return self.parent.map_tiles[int(self.y/maingame.GRID_RESOLUTION)][int(self.x/maingame.GRID_RESOLUTION)]
