@@ -14,14 +14,17 @@ as usual.
 Controls:
 
 Player One:
+
 move - WASD
 conquer tile - z
 
 Player Two:
+
 move - arrow keys
 conquer tile - ,
 
 TODO: 
+
 -power ups
 -introduce grid system
 -better collisions
