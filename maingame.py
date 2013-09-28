@@ -7,11 +7,11 @@ from entities import Point
 
 
 GRID_RESOLUTION = 50
-MAP_GRID_SIZE = Point(12,12)
+MAP_GRID_SIZE = Point(13,13)
 MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION,
                  MAP_GRID_SIZE.y * GRID_RESOLUTION)
-camerax = -120
-cameray = -120
+camerax = -20
+cameray = -40
 
 class MainGame(GameView):
     """The main game class"""    
@@ -56,7 +56,9 @@ class MainGame(GameView):
                           y == 0 or
                           x == (MAP_GRID_SIZE.x-1) or
                           y == (MAP_GRID_SIZE.y-1) or
-                          randint(0,1))
+                          (x%2 == 0 and y%2 == 0) or
+                          ((x)%3 == 0 and (y)%3 == 0)
+                          )
                 retmap[y].append(MapTile(x,y,raised))
         
         for y in range(len(retmap)):

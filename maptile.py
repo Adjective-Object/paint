@@ -29,6 +29,12 @@ class MapTile(object):
         self.neighbor_up = None
         self.neighbor_down = None
 
+    def get_rect(self):
+        return pygame.rect.Rect(self.gridx*maingame.GRID_RESOLUTION,
+                                (self.gridy)*maingame.GRID_RESOLUTION,
+                                maingame.GRID_RESOLUTION,
+                                maingame.GRID_RESOLUTION)
+
     def render(self, canvas):
         image = tile_ground
         if(self.raised):
