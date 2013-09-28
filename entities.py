@@ -19,6 +19,9 @@ class Point(object):
     def __init__(self,x,y):
         self.x = x
         self.y = y
+     
+    def __repr__(self):
+        return "[Point %s, %s]"%(self.x, self.y)
 
 class Entity(Point):
     """the basic superclass for game entities"""
@@ -26,24 +29,45 @@ class Entity(Point):
         super(Entity,self).__init__(x,y)
         self.velocity = Point(0,0)
         self.friction = 0
+        self.max_velocity = Point(9999,9999)
         self.size=Point(0,0)
         self.rect_offset = Point(0,0)
         self.facing = 0#down, right, up left
+        self.collides_terrain = False
     
     def set_parent(self, parent):
         self.parent = parent
     
     def update(self, elapsed):
         #update position with velocity
-        self.x+=self.velocity.x*elapsed
-        self.y+=self.velocity.y*elapsed
+        if(abs(self.velocity.x)>self.max_velocity.x):
+             self.max_velocity.x*get_sign(self.velocity.x)
+        if(abs(self.velocity.y)>self.max_velocity.y):
+             self.max_velocity.y*get_sign(self.velocity.y)
+          
+             
+        to_move = Point(self.velocity.x*elapsed, self.velocity.y*elapsed)
         
-        #momentum decay
-        self.velocity.x = self.velocity.x*((1-self.friction)**elapsed)
-        self.velocity.y = self.velocity.y*((1-self.friction)**elapsed)
-        
-        #binding to map limits
-        self._map_bounds()
+        #SUUPER inefficient way of colliding with terrain no matter what
+        num_loops = 1
+        if(self.collides_terrain):
+             num_loops=int(max(abs(to_move.x), abs(to_move.y))/ 10 )+1
+        #print to_move
+        for i in range(num_loops):
+             self.x+=1.0*to_move.x/num_loops
+             self.y+=1.0*to_move.y/num_loops
+             if(self.collides_terrain):                  
+                  self._terrain_collision()                  
+             self._map_bounds()
+     
+        if abs(self.velocity.x)<=self.friction*elapsed:
+             self.velocity.x = 0
+        else:
+             self.velocity.x -= get_sign(self.velocity.x)*self.friction*elapsed
+        if abs(self.velocity.y)<= self.friction*elapsed:
+             self.velocity.y = 0
+        else:
+             self.velocity.y -= get_sign(self.velocity.y)*self.friction*elapsed
     
     def _map_bounds(self):
         if(self.x < 0):
@@ -63,18 +87,17 @@ class Entity(Point):
         return self.parent.map_tiles[int(self.y/maingame.GRID_RESOLUTION)][int(round(self.x/maingame.GRID_RESOLUTION))]
     
     def _terrain_collision(self):
-        selfrect = self.get_rect()
         for row in self.parent.map_tiles:
              for tile in row:
+                  selfrect = self.get_rect()
                   if(tile.raised and tile.get_rect().colliderect(selfrect)):
                     overlap = get_rect_overlap(tile.get_rect(), selfrect)
-                    if(abs(overlap[0])<abs(overlap[1])):
+                    if(abs(overlap[0])<=abs(overlap[1])):
                          self.x+=overlap[0]
                          self.velocity.x=0
-                    else:
+                    if(abs(overlap[0])>=abs(overlap[1])):
                          self.y+=overlap[1]
                          self.velocity.y=0
-                    return
                 
     
     def get_rect(self):
@@ -91,11 +114,11 @@ class LivingEntity(Entity):
     
     def __init__(self,x,y):
         super(LivingEntity, self).__init__(x,y)
+        self.collides_terrain = True
         #TODO animation definitions
     
     def update(self,elapsed):
         super(LivingEntity, self).update(elapsed)
-        self._terrain_collision()
     
     def render(self,canvas):
         #TODO frame selection from animation
@@ -121,7 +144,9 @@ class Player(LivingEntity):
            placeholder_graphic.subsurface(pygame.rect.Rect(0,150,50,50)),
      ]
      
-     SPEED = 1000
+     SPEED = 100
+     MAX_SPEED = 350
+     RAMPUP = 0.46
      
      def __init__(self,x,y,color,
                   keybindings = {"LEFT": pygame.K_LEFT,
@@ -134,7 +159,7 @@ class Player(LivingEntity):
           super(Player,self).__init__(x,y)
           self.color = color
           self.keybindings = keybindings
-          self.friction = 0.9
+          self.max_speed = Point(Player.MAX_SPEED,Player.MAX_SPEED)
           self.size = Point(20,20)
           self.rect_offset = Point(15,10)
       
@@ -142,17 +167,25 @@ class Player(LivingEntity):
           super(Player,self).update(elapsed)
           
           if(self._pressed("LEFT")):
-              self.velocity.x -= Player.SPEED * elapsed
+              self.velocity.x += (0-Player.MAX_SPEED-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 3
           if(self._pressed("RIGHT")):
-              self.velocity.x += Player.SPEED * elapsed
+              self.velocity.x += (Player.MAX_SPEED-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 1
           if(self._pressed("UP")):
-              self.velocity.y -= Player.SPEED * elapsed
+              self.velocity.y += (0-Player.MAX_SPEED-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 2
           if(self._pressed("DOWN")):
-              self.velocity.y += Player.SPEED * elapsed
+              self.velocity.y += (Player.MAX_SPEED-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 0
+          
+          if(not self._pressed("LEFT") and
+             not self._pressed("RIGHT")):
+               self.velocity.x += (0-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
+
+          if(not self._pressed("UP") and
+             not self._pressed("DOWN")):
+               self.velocity.y += (0-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)              
           
           if(self._pressed("PAINT")):
               self._get_tile().paint_color = self.color
@@ -227,7 +260,7 @@ class Police(LivingEntity):
           if(self.destination is None):
                self.destination = maptile
                self.path = self.find_path(self._get_tile(),self.destination)[1:]
-               print self.path
+               #print self.path
           
      def find_path(self, current_tile, destination, path=[], cumscore=0):
           if current_tile == destination:
