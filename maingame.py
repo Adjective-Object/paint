@@ -48,14 +48,26 @@ class MainGame(GameView):
     
     #begin construction functions
     def _make_map(self):
-        map = []
+        retmap = []
         for y in range(MAP_GRID_SIZE.y):
-            map.append([])
+            retmap.append([])
             for x in range(MAP_GRID_SIZE.x):
                 raised = (x == 0 or
                           y == 0 or
                           x == (MAP_GRID_SIZE.x-1) or
                           y == (MAP_GRID_SIZE.y-1) or
                           randint(0,1))
-                map[y].append(MapTile(x,y,raised))
-        return map
+                retmap[y].append(MapTile(x,y,raised))
+        
+        for y in range(len(retmap)):
+            for x in range(len(retmap)):
+                if(x!=0):
+                    retmap[y][x].neighbor_left = retmap[y][x-1]
+                if(x!=len(retmap[y])-1):
+                    retmap[y][x].neighbor_right = retmap[y][x+1]
+                if(y!=0):
+                    retmap[y][x].neighbor_up = retmap[y-1][x]
+                if(y!=len(retmap)-1):
+                    retmap[y][x].neighbor_down = retmap[y+1][x]
+            
+        return retmap

@@ -40,5 +40,16 @@ class MapTile(object):
                      (self.gridy + 1) * maingame.GRID_RESOLUTION -
                          maingame.cameray - image.get_size()[1])
                     )
-        if(self.color != None):
-            pass
+        if(self.paint_color is not None):
+            #TODO: masking images instead of tile tinting
+            x = image.convert_alpha()
+            self.paint_color.a = 80;
+            x.fill(self.paint_color)
+            canvas.blit(x,
+                    (self.gridx * maingame.GRID_RESOLUTION - 
+                         maingame.camerax ,
+                     (self.gridy + 1) * maingame.GRID_RESOLUTION -
+                         maingame.cameray - image.get_size()[1])
+                    )
+        
+            

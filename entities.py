@@ -16,7 +16,7 @@ class Entity(Point):
         super(Entity,self).__init__(x,y)
         self.velocity = Point(0,0)
         self.friction = 0
-        self.size=Point(0,0)
+        self.size=Point(0,0)    
     
     def set_parent(self, parent):
         self.parent = parent
@@ -109,7 +109,7 @@ class Player(Entity):
                     )
 
     def _get_tile(self):
-        return self.parent.map_tiles[int(self.y/maingame.GRID_RESOLUTION)][int(self.x/maingame.GRID_RESOLUTION)]
+        return self.parent.map_tiles[int(self.y/maingame.GRID_RESOLUTION)][int(round(self.x/maingame.GRID_RESOLUTION))]
     
     def _pressed(self,code):
         return pygame.key.get_pressed()[self.keybindings[code]]
