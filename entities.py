@@ -149,6 +149,7 @@ class Player(LivingEntity):
      SPEED = 100
      MAX_SPEED = 350
      RAMPUP = 0.46
+     BOMB_COOLDOWN = 5
      
      def __init__(self,x,y,n,color,
                   keybindings = {"LEFT": pygame.K_LEFT,
@@ -164,9 +165,9 @@ class Player(LivingEntity):
           self.max_speed = Point(Player.MAX_SPEED,Player.MAX_SPEED)
           self.size = Point(20,20)
           self.rect_offset = Point(15,10)
-          self.ammo = 10
           self.bomb = True
           self.player_number = n
+          self.bombcooldown = 0
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
@@ -193,17 +194,18 @@ class Player(LivingEntity):
                self.velocity.y += (0-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)              
           
           if(self._pressed("PAINT")):
-               if(self.ammo > 0 and not (self._get_tile().paint_color == self.color)):
+               if(self._get_tile().paint_color != self.color):
                   self._get_tile().paint_color = self.color
-                  self.ammo -= 1
                   self._get_tile().player_number = self.player_number
           
-          if(self._pressed("BOMB") and self.bomb):
+          if(self._pressed("BOMB") and self.bombcooldown<=0 and self.bomb):
                self._bomb(self.facing, self._get_tile())
-                    
-                      
-          
-     
+               self.bombcooldown = Player.BOMB_COOLDOWN
+          elif(self._pressed("BOMB")):
+               pass#TODO fail sounds
+               
+          self.bombcooldown -= elapsed
+          	
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],
                       (self.x - self.parent.camerax,
