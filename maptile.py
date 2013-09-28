@@ -1,9 +1,10 @@
-import pygame
-
 import os
+import pygame
+import maingame
 
-tile_raised = pygame.image.load("res/tile_raised.png")
-tile_ground = pygame.image.load("res/tile_ground.png")
+#for some reason I have to specify the directory with respect to root....
+tile_raised = pygame.image.load(os.getcwd()+"/res/tile_raised.png")
+tile_ground = pygame.image.load(os.getcwd()+"/res/tile.png")
 
 class MapTile(object):
     
@@ -24,5 +25,8 @@ class MapTile(object):
         if(self.raised):
             image = tile_raised
         canvas.blit(image,
-                    self.gridx * maingame.GRID_RESOLUTION - maingame.camerax,
-                    self.gridy * maingame.GRID_RESOLUTION - maingame.cameray)
+                    (self.gridx * maingame.GRID_RESOLUTION - 
+                         maingame.camerax ,
+                     self.gridy * maingame.GRID_RESOLUTION -
+                         maingame.cameray - image.get_size()[1])
+                    )

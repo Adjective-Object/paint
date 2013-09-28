@@ -2,9 +2,9 @@ from gameview import GameView
 from maptile import MapTile
 from random import randint
 
-GRID_RESOLUTION = 48
-camerax=100
-cameray=100
+GRID_RESOLUTION = 50
+camerax=-100
+cameray=-100
 
 class MainGame(GameView):
     """The main game class"""    
@@ -12,22 +12,25 @@ class MainGame(GameView):
     def __init__(self,canvas):
         super(MainGame, self).__init__(canvas)
         
-        self.map_tiles = sesslf._make_map()
+        self.map_tiles = self._make_map()
 
     def main_loop(self, elapsed):
         """moves forward the game"""
     
     def render(self):
-        for tile in self.map_tiles:
-            tile.render(self.canvas)
+        for row_number in range(len(self.map_tiles)):
+            for tile in self.map_tiles(row_number):
+                tile.render(self.canvas)
+            for entity in self.entities:
+                if( int(entity.y) ==  row_number):
+                    entity.render(self.canvas)
         
     #begin construction functions
     
-    def _make_map():
+    def _make_map(self):
         map = []
-        for x in range(10):
+        for y in range(10):
             map.append([])
-            for y in range(10):
-                map.append(MapTile(x,y,random.randint(0,1)))
-    
-    
+            for x in range(10):
+                map[y].append(MapTile(x,y,randint(0,1)))
+        return map
