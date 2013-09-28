@@ -163,6 +163,7 @@ class Player(LivingEntity):
           self.size = Point(20,20)
           self.rect_offset = Point(15,10)
           self.ammo = 10
+          self.bomb = True
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
@@ -189,13 +190,16 @@ class Player(LivingEntity):
                self.velocity.y += (0-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)              
           
           if(self._pressed("PAINT")):
-              if(self.ammo > 0 and not (self._get_tile().paint_color == self.color)):
+               if(self.ammo > 0 and not (self._get_tile().paint_color == self.color)):
                   self._get_tile().paint_color = self.color
                   self.ammo -= 1
-                      
+          
+          if(self._pressed("BOMB") and self.bomb):
+               self._bomb(self.facing, self._get_tile())
+                    
                       
           
-      
+     
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],
                       (self.x - maingame.camerax,
@@ -205,6 +209,12 @@ class Player(LivingEntity):
       
      def _pressed(self,code):
           return pygame.key.get_pressed()[self.keybindings[code]]
+     
+     def _bomb(self, direction, tile):
+          tile.paint_color = self.color
+          if not(tile.get_neighbor(self.facing).raised):
+             self._bomb(direction, tile.get_neighbor(self.facing))
+          
                
 
 class Police(LivingEntity):
