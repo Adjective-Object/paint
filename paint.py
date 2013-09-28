@@ -53,4 +53,3 @@ def loop(screen_surface, loopfn, dorender, loopcontrol=lambda initialTime: True 
         
 if __name__ == "__main__":
     do_game()
-    """test"""
