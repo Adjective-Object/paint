@@ -168,6 +168,7 @@ class Player(LivingEntity):
           self.bomb = True
           self.player_number = n
           self.bombcooldown = 0
+          self.collides_terrain = False          
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
@@ -201,6 +202,7 @@ class Player(LivingEntity):
           if(self._pressed("BOMB") and self.bombcooldown<=0 and self.bomb):
                self._bomb(self.facing, self._get_tile())
                self.bombcooldown = Player.BOMB_COOLDOWN
+               pass#TODO BOMB SOUNDS
           elif(self._pressed("BOMB")):
                pass#TODO fail sounds
                
@@ -245,7 +247,10 @@ class Police(LivingEntity):
      def __init__(self,x,y):
           super(Police, self).__init__(x,y)
           self.destination = None
+          
           self.size = Point(20,20)
+          self.rect_offset = Point(15,10)
+          
           self.speed = Police.SPEED_DEFAULT
           self.fasttimer=0
      
@@ -266,11 +271,13 @@ class Police(LivingEntity):
                     self.destination = None
                else:
                     #print abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION), abs(self.y - self.path[0].gridy*maingame.GRID_RESOLUTION), Police.SPEED
+                    #if close enough ,switch to next node
                     if(abs(self.x - self.path[0].gridx*maingame.GRID_RESOLUTION)<self.speed*elapsed and
                        abs(self.y - (self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION)<self.speed*elapsed):
                          self.x = self.path[0].gridx*maingame.GRID_RESOLUTION
                          self.y = (self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION
                          self.path = self.path[1:]
+                    #otherwise, move to next node on path.
                     else:
                          if(self.x!=self.path[0].gridx*maingame.GRID_RESOLUTION):
                               self.velocity.x=self.speed * get_sign(self.path[0].gridx*maingame.GRID_RESOLUTION-self.x)
