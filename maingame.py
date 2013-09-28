@@ -1,5 +1,6 @@
 from gameview import GameView
 from maptile import MapTile
+from zone import Zone
 from random import randint
 import pygame
 import entities
@@ -20,6 +21,7 @@ class MainGame(GameView):
         super(MainGame, self).__init__(canvas)
         
         self.map_tiles = self._make_map()
+        self.master_zone = Zone()
         self.entities = []
         self.cameras = []
         self.players = []
@@ -96,6 +98,7 @@ class MainGame(GameView):
     
     #begin construction functions
     def _make_map(self):
+        
         retmap = []
         for y in range(MAP_GRID_SIZE.y):
             retmap.append([])
@@ -108,6 +111,8 @@ class MainGame(GameView):
                           ((x)%3 == 0 and (y)%3 == 0)
                           )
                 retmap[y].append(MapTile(x,y,self,raised))
+                
+                
         
         for y in range(len(retmap)):
             for x in range(len(retmap)):
@@ -123,7 +128,7 @@ class MainGame(GameView):
         return retmap
     
     def _populate_map(self):
-        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2,
+        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2, 1,
                                           pygame.color.Color(23,71,166,255),
                                           keybindings = {"LEFT": pygame.K_LEFT,
                                                          "RIGHT": pygame.K_RIGHT,
@@ -133,7 +138,7 @@ class MainGame(GameView):
                                                          "BOMB": pygame.K_PERIOD,
                                                          "ITEM": pygame.K_SLASH}                                          
                                           ))
-        self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2,
+        self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2, 2,
                                                   pygame.color.Color(232,44,12,255),
                                                   keybindings = {"LEFT": pygame.K_a,
                                                                  "RIGHT": pygame.K_d,

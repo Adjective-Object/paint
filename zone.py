@@ -3,42 +3,22 @@ from maptile import MapTile
 class Zone(object):
     
     paint_blocks = 0.00
+    player_number = 0
+    raised = False
     
     def __init__(self):
-        x1 = [None, None, None, None]
-        x2 = [None, None, None, None]
-        x3 = [None, None, None, None]
-        x4 = [None, None, None, None]
-        zone = [x1, x2, x3, x4]
+        zone = []
         
     def add(self, mp):
         """
-        Adds a maptile to the zone, added from top left to bottom right.
+        Adds a maptile to the zone
         If the maptile isnt raised it adds a number to paint_blocks for
         zone control calculations
         """
         
-        for i, j in product(range(4), repeat = 2):
-            if(self.zone[i][j] == None):
-                self.zone[i][j] = mp
-                if(self.zone[i][j].raised == False):
-                    self.paint_blocks += 1.00
-                return
-                
-        print("Nothing done, mate.")
-    
-    
-    def replace(self, x, y, mp):
-        self.zone[x][y] = mp
-        
-        
-    def set_player_number(self, x, y, number):
-        self.zone[x][y] = number
-        
-        
-    def get_player_number(self, x, y):
-        return self.zone[x][y].player_number
-    
+        self.zone.append(mp)
+        if(self.zone[len(self.zone)].raised == False):
+            self.paint_blocks += 1.00
     
     def get_owner(self, n):
         """ 
@@ -53,14 +33,19 @@ class Zone(object):
             
         return 0
     
-    
+    def calculate_owner(self, n):
+        """
+        Updates player_number
+        """
+        self.player_number = self.get_owner(n)
+        
     def get_percent(self, n):
         """
         Returns percent control of player n
         """
         controlled = 0.00
-        for i, j in product(range(4), repeat = 2):
-            if(self.zone[i][j].player_number == n):
+        for i in range(len(self.zone)):
+            if(self.zone[i].player_number == n):
                 controlled += 1.00
         
         return float(controlled / self.paint_blocks)

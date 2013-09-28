@@ -32,6 +32,8 @@ class MapTile(object):
         
         self.score = 0#for pathfinding
         
+        self.player_number = 0
+        
     def get_neighbor(self, facing):
         if(facing == 0):
             return self.neighbor_down

@@ -150,7 +150,7 @@ class Player(LivingEntity):
      MAX_SPEED = 350
      RAMPUP = 0.46
      
-     def __init__(self,x,y,color,
+     def __init__(self,x,y,n,color,
                   keybindings = {"LEFT": pygame.K_LEFT,
                                 "RIGHT": pygame.K_RIGHT,
                                 "UP": pygame.K_UP,
@@ -166,6 +166,7 @@ class Player(LivingEntity):
           self.rect_offset = Point(15,10)
           self.ammo = 10
           self.bomb = True
+          self.player_number = n
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
@@ -195,6 +196,7 @@ class Player(LivingEntity):
                if(self.ammo > 0 and not (self._get_tile().paint_color == self.color)):
                   self._get_tile().paint_color = self.color
                   self.ammo -= 1
+                  self._get_tile().player_number = self.player_number
           
           if(self._pressed("BOMB") and self.bomb):
                self._bomb(self.facing, self._get_tile())
@@ -214,6 +216,7 @@ class Player(LivingEntity):
      
      def _bomb(self, direction, tile):
           tile.paint_color = self.color
+          tile.player_number = self.player_number
           if not(tile.get_neighbor(self.facing).raised):
              self._bomb(direction, tile.get_neighbor(self.facing))
           
@@ -332,7 +335,6 @@ class Police(LivingEntity):
           return None
                     
            
-          
 
 class Camera(Entity):
      #seconds between rotations, in seconds
