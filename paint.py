@@ -5,7 +5,7 @@ import os
 from maingame import MainGame
 
 '''
-HARD IN THE PAINT
+PAINT WAR
 
 The main game will run from this file. Do not be deceived my the module 'maingame.' 
 This file will instantiate a maingame instance.

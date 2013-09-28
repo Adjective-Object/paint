@@ -62,9 +62,6 @@ def loop(screen_surface, loopfn, dorender, loopcontrol=lambda initialTime: True 
         pygame.display.flip()        
         
 if __name__ == "__main__":
-<<<<<<< HEAD
     do_game()
-    """test"""
-=======
-    do_game()
->>>>>>> 741bc9e12cad673e83a46d39c7f5a1e98901dc35
+    
+

@@ -6,12 +6,13 @@ import pygame
 import entities
 from entities import Point
 import random
+import threading
+from time import sleep
 
 
 GRID_RESOLUTION = 50
 MAP_GRID_SIZE = Point(14,14)
-MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION,
-                 MAP_GRID_SIZE.y * GRID_RESOLUTION)
+MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION, MAP_GRID_SIZE.y * GRID_RESOLUTION)
 
 
 class MainGame(GameView):
@@ -20,6 +21,13 @@ class MainGame(GameView):
     """   
     
     def __init__(self,canvas):
+       
+        self.running = True
+        th1 = threading.Thread(target = self.player_one)
+        th2 = threading.Thread(target = self.player_two)
+        th1.start()
+        th2.start()
+       
         super(MainGame, self).__init__(canvas)
         
         self.zones = []        
@@ -34,8 +42,38 @@ class MainGame(GameView):
         self.cameray = -40
         
         self._populate_map()
-
         self.ease_elapsed = 0
+        
+    def player_one (self):
+        '''
+        Handles the running of all operations that run in player one's thread, as well
+        as creation of the player.
+        '''
+        self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2, 2, pygame.color.Color(232,44,12,255),
+            keybindings = {"LEFT": pygame.K_a,
+            "RIGHT": pygame.K_d,
+            "UP": pygame.K_w,
+            "DOWN": pygame.K_s,
+            "PAINT": pygame.K_z,
+            "BOMB": pygame.K_x,
+            "ITEM": pygame.K_c}                                                   
+        ))      
+        
+    def player_two (self):
+        '''
+        Handles the running of all operations that run in player two's thread, as well 
+        as creation of the player.
+        '''
+        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2, 1, pygame.color.Color(23,71,166,255),
+            keybindings = {"LEFT": pygame.K_LEFT,
+            "RIGHT": pygame.K_RIGHT,
+            "UP": pygame.K_UP,
+            "DOWN": pygame.K_DOWN,
+            "PAINT": pygame.K_COMMA,
+            "BOMB": pygame.K_PERIOD,
+            "ITEM": pygame.K_SLASH}                                          
+        ))
+                                    
         
     def easing(self,elapsed):
         self.ease_elapsed+=elapsed
@@ -65,7 +103,7 @@ class MainGame(GameView):
                         if(i._get_tile().manhattan(player._get_tile())<closest._get_tile().manhattan(player._get_tile())):
                             closest=i
                     closest.alert_to(player, player._get_tile())
-
+    
         
         for police in self.police:
             for player in self.players:
@@ -116,8 +154,11 @@ class MainGame(GameView):
     
         return entity
     
-    #begin construction functions
-    def _make_map(self):            
+    
+    def _make_map(self):  
+        '''
+        The map is created for the game. This is a 50x50 tile grid. 
+        '''          
         for x in range(MAP_GRID_SIZE.x/3):
             for y in range(MAP_GRID_SIZE.y/3):
                 self.zones.append(Zone())
@@ -151,48 +192,25 @@ class MainGame(GameView):
         return retmap
     
     def _populate_map(self):
-        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2, 1,
-                                          pygame.color.Color(23,71,166,255),
-                                          keybindings = {"LEFT": pygame.K_LEFT,
-                                                         "RIGHT": pygame.K_RIGHT,
-                                                         "UP": pygame.K_UP,
-                                                         "DOWN": pygame.K_DOWN,
-                                                         "PAINT": pygame.K_COMMA,
-                                                         "BOMB": pygame.K_PERIOD,
-                                                         "ITEM": pygame.K_SLASH}                                          
-                                          ))
-        self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2, 2,
-                                                  pygame.color.Color(232,44,12,255),
-                                                  keybindings = {"LEFT": pygame.K_a,
-                                                                 "RIGHT": pygame.K_d,
-                                                                 "UP": pygame.K_w,
-                                                                 "DOWN": pygame.K_s,
-                                                                 "PAINT": pygame.K_z,
-                                                                 "BOMB": pygame.K_x,
-                                                                 "ITEM": pygame.K_c}                                                   
-                                                  ))        
-        
-        pol = self.add(entities.Police(GRID_RESOLUTION*5,
-                                 GRID_RESOLUTION*6+1)
-                )        
+        '''
+        The different entities excluding player are added to the game. This includes
+        cameras and policemen.
+        '''
+        pol = self.add(entities.Police(GRID_RESOLUTION*5, GRID_RESOLUTION*6+1))        
         self.add(entities.Camera(GRID_RESOLUTION*3,
-                                 GRID_RESOLUTION*3+1,
-                                 random.random(),
-                                 random.random())
-                 )
+            GRID_RESOLUTION*3+1,
+            random.random(),
+            random.random())
+        )
         
-        pol = self.add(entities.Police(GRID_RESOLUTION*7,
-                                 GRID_RESOLUTION*6+1)
-                )        
+        pol = self.add(entities.Police(GRID_RESOLUTION*7, GRID_RESOLUTION*6+1))        
         self.add(entities.Camera(GRID_RESOLUTION*3,
                                  GRID_RESOLUTION*9+1,
                                  random.random(),
                                  random.random())
                  )
         
-        pol = self.add(entities.Police(GRID_RESOLUTION*7,
-                                 GRID_RESOLUTION*8+1)
-                )        
+        pol = self.add(entities.Police(GRID_RESOLUTION*7, GRID_RESOLUTION*8+1))        
         self.add(entities.Camera(GRID_RESOLUTION*9,
                                  GRID_RESOLUTION*9+1,
                                  random.random(),

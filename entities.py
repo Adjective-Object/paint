@@ -34,7 +34,8 @@ class Entity(Point):
         self.max_velocity = Point(9999,9999)
         self.size=Point(0,0)
         self.rect_offset = Point(0,0)
-        self.facing = 0#down, right, up left
+        # 0-down, 1-right, 2-up, 3-left
+        self.facing = 0 
         self.collides_terrain = False
         self.alive=True
         self.stasis = 0
@@ -48,6 +49,8 @@ class Entity(Point):
              self.max_velocity.x*get_sign(self.velocity.x)
         if(abs(self.velocity.y)>self.max_velocity.y):
              self.max_velocity.y*get_sign(self.velocity.y)
+          
+          
           
              
         to_move = Point(self.velocity.x*elapsed, self.velocity.y*elapsed)
@@ -165,8 +168,8 @@ class Player(LivingEntity):
           self.color = color
           self.keybindings = keybindings
           self.max_speed = Point(Player.MAX_SPEED,Player.MAX_SPEED)
-          self.size = Point(20,20)
-          self.rect_offset = Point(15,10)
+          self.size = Point(25,25)
+          self.rect_offset = Point(0,0)
           self.bomb = True
           self.explosion = pygame.mixer.Sound(os.getcwd()+"/res/bomb_noise.wav")
           self.player_number = n
@@ -176,27 +179,20 @@ class Player(LivingEntity):
      def update(self,elapsed):
           super(Player,self).update(elapsed)
           
-          if(self._pressed("LEFT")):
-              self.velocity.x += (0-Player.MAX_SPEED-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
+          #The player moves along the map grid tiles.
+          if (self._pressed("LEFT")):
+              self.x -= 50
               self.facing = 3
-          if(self._pressed("RIGHT")):
-              self.velocity.x += (Player.MAX_SPEED-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
+          elif (self._pressed("RIGHT")):
+              self.x += 50
               self.facing = 1
-          if(self._pressed("UP")):
-              self.velocity.y += (0-Player.MAX_SPEED-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)
+          elif (self._pressed("UP")):
+              self.y -= 50
               self.facing = 2
-          if(self._pressed("DOWN")):
-              self.velocity.y += (Player.MAX_SPEED-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)
+          elif (self._pressed("DOWN")):
+              self.y += 50
               self.facing = 0
-          
-          if(not self._pressed("LEFT") and
-             not self._pressed("RIGHT")):
-               self.velocity.x += (0-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
-
-          if(not self._pressed("UP") and
-             not self._pressed("DOWN")):
-               self.velocity.y += (0-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)              
-          
+       
           if(self._pressed("PAINT")):
                if(self._get_tile().paint_color != self.color):
                   self._get_tile().paint_color = self.color
@@ -204,7 +200,7 @@ class Player(LivingEntity):
           
           if(self._pressed("BOMB") and self.bombcooldown<=0 and self.bomb):
                self._bomb(self.facing, self._get_tile())
-
+            
                self.bombcooldown = Player.BOMB_COOLDOWN
                pass#TODO BOMB SOUNDS          
                
@@ -313,7 +309,7 @@ class Police(LivingEntity):
           A police officer which has come into contact with a player will find a new destination.
           '''
           while(self.destination is None or self.destination.raised):
-               print 'hello'
+
                self.destination = random.choice(random.choice(self.parent.map_tiles))
           self.path = self.find_path(self._get_tile(),self.destination)[1:]
 
