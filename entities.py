@@ -24,9 +24,7 @@ class Point(object):
         return "[Point %s, %s]"%(self.x, self.y)
 
 class Entity(Point):
-    """
-    The basic superclass for game entities. 
-    """
+    """the basic superclass for game entities"""
     def __init__(self, x, y):
         super(Entity,self).__init__(x,y)
         self.velocity = Point(0,0)
@@ -34,23 +32,20 @@ class Entity(Point):
         self.max_velocity = Point(9999,9999)
         self.size=Point(0,0)
         self.rect_offset = Point(0,0)
-        # 0-down, 1-right, 2-up, 3-left
-        self.facing = 0 
+        self.facing = 0#down, right, up left
         self.collides_terrain = False
         self.alive=True
         self.stasis = 0
     
     def set_parent(self, parent):
         self.parent = parent
-
+    
     def update(self, elapsed):
         #update position with velocity
         if(abs(self.velocity.x)>self.max_velocity.x):
              self.max_velocity.x*get_sign(self.velocity.x)
         if(abs(self.velocity.y)>self.max_velocity.y):
              self.max_velocity.y*get_sign(self.velocity.y)
-          
-          
           
              
         to_move = Point(self.velocity.x*elapsed, self.velocity.y*elapsed)
@@ -94,7 +89,7 @@ class Entity(Point):
         return self.parent.map_tiles[int(self.y/maingame.GRID_RESOLUTION)][int(round(self.x/maingame.GRID_RESOLUTION))]
     
     def _terrain_collision(self):
-          for row in self.parent.map_tiles:
+        for row in self.parent.map_tiles:
              for tile in row:
                   selfrect = self.get_rect()
                   if(tile.raised and tile.get_rect().colliderect(selfrect)):
@@ -105,15 +100,16 @@ class Entity(Point):
                     if(abs(overlap[0])>=abs(overlap[1])):
                          self.y+=overlap[1]
                          self.velocity.y=0
-          
+                
+    
     def get_rect(self):
-          return pygame.rect.Rect(self.x+self.rect_offset.x, self.y-self.size.y+self.rect_offset.y, self.size.x, self.size.y)
+        return pygame.rect.Rect(self.x+self.rect_offset.x, self.y-self.size.y+self.rect_offset.y, self.size.x, self.size.y)
     
     def render(self,canvas):
-          pass
+        pass
    
     def post_render(self, canvas):
-          pass
+        pass
         
 
 class LivingEntity(Entity):
@@ -167,10 +163,8 @@ class Player(LivingEntity):
           self.color = color
           self.keybindings = keybindings
           self.max_speed = Point(Player.MAX_SPEED,Player.MAX_SPEED)
-          
-          self.size = Point(50,50)
-          self.rect_offset = Point(0,0)
-
+          self.size = Point(20,20)
+          self.rect_offset = Point(15,10)
           self.bomb = True
           self.explosion = pygame.mixer.Sound(os.getcwd()+"/res/bomb_noise.wav")
           self.player_number = n
@@ -179,21 +173,28 @@ class Player(LivingEntity):
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
-
-          #The player moves along the map grid tiles.
-          if (self._pressed("LEFT")):
-              self.x -= 50
+          
+          if(self._pressed("LEFT")):
+              self.velocity.x += (0-Player.MAX_SPEED-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 3
-          elif (self._pressed("RIGHT")):
-              self.x += 50
+          if(self._pressed("RIGHT")):
+              self.velocity.x += (Player.MAX_SPEED-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 1
-          elif (self._pressed("UP")):
-              self.y -= 50
+          if(self._pressed("UP")):
+              self.velocity.y += (0-Player.MAX_SPEED-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 2
-          elif (self._pressed("DOWN")):
-              self.y += 50
+          if(self._pressed("DOWN")):
+              self.velocity.y += (Player.MAX_SPEED-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)
               self.facing = 0
-       
+          
+          if(not self._pressed("LEFT") and
+             not self._pressed("RIGHT")):
+               self.velocity.x += (0-self.velocity.x)*min(Player.RAMPUP*elapsed*80,1)
+
+          if(not self._pressed("UP") and
+             not self._pressed("DOWN")):
+               self.velocity.y += (0-self.velocity.y)*min(Player.RAMPUP*elapsed*80,1)              
+          
           if(self._pressed("PAINT")):
                if(self._get_tile().paint_color != self.color):
                   self._get_tile().paint_color = self.color
@@ -201,15 +202,15 @@ class Player(LivingEntity):
           
           if(self._pressed("BOMB") and self.bombcooldown<=0 and self.bomb):
                self._bomb(self.facing, self._get_tile())
-            
+
                self.bombcooldown = Player.BOMB_COOLDOWN
                pass#TODO BOMB SOUNDS          
                
           elif(self._pressed("BOMB")):
                pass#TODO fail sounds
                
-          #self.bombcooldown -= elapsed
-        
+          self.bombcooldown -= elapsed
+          	
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],
                       (self.x - self.parent.camerax,
@@ -234,7 +235,6 @@ class Police(LivingEntity):
      SPEED_DEFAULT=200
      SPEED_FAST=200
      FAST_TIME=1.5
-     CHASE_TIME=5
      
      placeholder_police = pygame.image.load(os.getcwd()+"/res/police.png")
      placeholder_police.set_colorkey(pygame.color.Color(255,255,255))     
@@ -252,46 +252,19 @@ class Police(LivingEntity):
           super(Police, self).__init__(x,y)
           self.destination = None
           
-          self.size = Point(40,40)
-          self.rect_offset = Point(5,5)
+          self.size = Point(20,20)
+          self.rect_offset = Point(15,10)
           
           self.speed = Police.SPEED_DEFAULT
           self.fasttimer=0
-          
-          self.target = None
-          self.time_chasing = 0
      
      def update(self, elapsed):
           self.velocity.y=0
           self.velocity.x=0
-          self.time_chasing-=elapsed
           
           if(self.destination is None):
-               
-               if(self.target == None):
-                    if(random.random()<0.2*elapsed):
-                         self.facing= (self.facing-1)%3
-                    if(random.random()<(0.2-0.15*(self._get_tile().paint_color is not None))*elapsed):
-                         self.wander()
-                    
-               elif self.time_chasing<=0:
-                    self.target=None
-               elif self.target._get_tile()==this.get_tile():
-                    if(self.x!=self.target.x):
-                         self.velocity.x=self.speed * get_sign(self.target.x-self.x)
-                         self.facing = 1+2*(self.velocity.x<0)
-                         if(math.abs(self.x-target.x<self.speed)):
-                            self.velocity.x=0
-                            self.x=target.x
-                    if(self.y!=(self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION):
-                         self.velocity.y=self.speed * get_sign(self.target.y-self.y)
-                         self.facing = 0+2*(self.velocity.y<0)
-                         if(math.abs(self.y-target.y<self.speed)):
-                              self.velocity.y=0
-                              self.y=target.y                         
-               else:
-                    self.destination = self.target._get_tile()
-                    self.path = self.find_path(self._get_tile(),self.destination)[1:]                    
+               if(random.random()<0.2*elapsed):
+                    self.facing= (self.facing-1)%3
           else:
                if(self.speed==Police.SPEED_FAST and time.time()-self.fasttimer>Police.FAST_TIME):
                     self.speed = Police.SPEED_DEFAULT
@@ -316,19 +289,15 @@ class Police(LivingEntity):
                          if(self.y!=(self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION):
                               self.velocity.y=self.speed * get_sign((self.path[0].gridy+0.5)*maingame.GRID_RESOLUTION-self.y)
                               self.facing = 0+2*(self.velocity.y<0)
-                              
           super(Police,self).update(elapsed)
-                            
+                              
      
      def wander(self):
-          '''
-          A police officer which has come into contact with a player will find a new destination.
-          '''
           while(self.destination is None or self.destination.raised):
-
                self.destination = random.choice(random.choice(self.parent.map_tiles))
           self.path = self.find_path(self._get_tile(),self.destination)[1:]
 
+     
      def render(self,canvas):
           canvas.blit(Police.policeimages[self.facing],
                       (self.x - self.parent.camerax,
@@ -344,17 +313,12 @@ class Police(LivingEntity):
                pygame.rect.Rect(self.x-150,self.y,200,50),
           ][self.facing]
      
-     def alert_to(self, player, maptile,isfast=False):
-         ''' 
-         If a guard notices a player through one of the security cameras, he will 
-         approach the player. At the time that the guard reaches the player, he will stop
-         moving closer.
-         '''
-         if(self.destination is None and not self.get_rect().colliderect(player.get_rect())):
+     def alert_to(self,maptile,isfast=False):
+          if(self.destination is None):
                if(isfast and self.speed!=Police.SPEED_FAST):
                               self.fasttimer = time.time()
                               self.speed = Police.SPEED_FAST               
-               self.destination = player._get_tile()
+               self.destination = maptile
                self.path = self.find_path(self._get_tile(),self.destination)[1:]
                #print self.path
                self.parent.add(Exclamation(self.x+20, self.y))
@@ -406,10 +370,10 @@ class Camera(Entity):
           self.facing = random.randint(0,3)
           
           self.monitor_rects = [
-               pygame.rect.Rect(self.x-1,self.y+maingame.GRID_RESOLUTION,maingame.GRID_RESOLUTION, maingame.GRID_RESOLUTION*2),
-               pygame.rect.Rect(self.x+-1+maingame.GRID_RESOLUTION,self.y,maingame.GRID_RESOLUTION*2,maingame.GRID_RESOLUTION),
-               pygame.rect.Rect(self.x-1,self.y-maingame.GRID_RESOLUTION,maingame.GRID_RESOLUTION,maingame.GRID_RESOLUTION*2),
-               pygame.rect.Rect(self.x-1+maingame.GRID_RESOLUTION*2,self.y,maingame.GRID_RESOLUTION*2,maingame.GRID_RESOLUTION)
+               pygame.rect.Rect(self.x-1,self.y+50,50,100),
+               pygame.rect.Rect(self.x+49,self.y,100,50),
+               pygame.rect.Rect(self.x-1,self.y-100,50,100),
+               pygame.rect.Rect(self.x-101,self.y,100,50)
                ]
      
      def update(self,elapsed):

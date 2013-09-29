@@ -1,4 +1,4 @@
-HARD IN THE PAINT
+PAINT WAR
 =====
 
 A two-player game created for the University of Toronto 2013 Hackathon. Players are set in a 2-dimensional grid 
@@ -29,3 +29,5 @@ TODO:
 -introduce grid system
 -better collisions
 -splash screen
+
+-make a game
