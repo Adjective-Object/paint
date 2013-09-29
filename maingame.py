@@ -8,7 +8,7 @@ from entities import Point
 import random
 
 
-GRID_RESOLUTION = 50
+GRID_RESOLUTION = 48
 MAP_GRID_SIZE = Point(14,14)
 MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION,
                  MAP_GRID_SIZE.y * GRID_RESOLUTION)
@@ -57,12 +57,12 @@ class MainGame(GameView):
             for player in self.players:
                 if(camera.get_vision_rect().colliderect(player.get_rect())):
                     closest = min(self.police, key = lambda i: i._get_tile().manhattan(player._get_tile()))
-                    closest.alert_to(player._get_tile())
+                    closest.alert_to(player)
         
         for police in self.police:
             for player in self.players:
                 if(police.get_vision_rect().colliderect(player.get_rect())):
-                    police.alert_to(player._get_tile(), True)
+                    police.alert_to(player, True)
                 if(player.stasis==0 and police.get_rect().colliderect(player.get_rect())):
                     player.stais=5
                     police.wander()
@@ -79,7 +79,7 @@ class MainGame(GameView):
         
         for entity in self.entities:
             entity.post_render(self.canvas)
-            
+        """
         for zone in self.zones:
             color = zone.get_dominant_color()
             if(color is not None):
@@ -92,7 +92,7 @@ class MainGame(GameView):
                                          GRID_RESOLUTION,
                                          GRID_RESOLUTION),
                                      1)
-    
+        """
     #begin helper functions
     def add(self, entity):
         entity.set_parent(self)
@@ -163,38 +163,8 @@ class MainGame(GameView):
                                                                  "ITEM": pygame.K_c}                                                   
                                                   ))        
         
-        pol = self.add(entities.Police(GRID_RESOLUTION*5,
-                                 GRID_RESOLUTION*6+1)
-                )        
-        self.add(entities.Camera(GRID_RESOLUTION*3,
-                                 GRID_RESOLUTION*3+1,
-                                 random.random(),
-                                 random.random())
-                 )
-        
-        pol = self.add(entities.Police(GRID_RESOLUTION*7,
-                                 GRID_RESOLUTION*6+1)
-                )        
-        self.add(entities.Camera(GRID_RESOLUTION*3,
-                                 GRID_RESOLUTION*9+1,
-                                 random.random(),
-                                 random.random())
-                 )
-        
-        pol = self.add(entities.Police(GRID_RESOLUTION*7,
-                                 GRID_RESOLUTION*8+1)
-                )        
-        self.add(entities.Camera(GRID_RESOLUTION*9,
-                                 GRID_RESOLUTION*9+1,
-                                 random.random(),
-                                 random.random())
-                 )
-        
-        pol = self.add(entities.Police(GRID_RESOLUTION*5,
-                                 GRID_RESOLUTION*8+1)
-                )        
-        self.add(entities.Camera(GRID_RESOLUTION*9,
-                                 GRID_RESOLUTION*3+1,
-                                 random.random(),
-                                 random.random())
-                 )
+        for x in range(3,9):
+            for y in range(3,9):
+                pol = self.add(entities.Police(GRID_RESOLUTION*x,
+                                 GRID_RESOLUTION*y+1)
+                )
