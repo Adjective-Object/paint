@@ -23,7 +23,7 @@ BACKGROUND_FILL = pygame.color.Color(255, 255, 255, 255)
 
 def do_game():
     pygame.init()
-    pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=4096)
+    pygame.mixer.init(frequency=44100, size=16, channels=2, buffer=4096)
     
     screen_surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Paints")
