@@ -11,7 +11,7 @@ from time import sleep
 import types
 
 
-GRID_RESOLUTION = 50
+GRID_RESOLUTION = 48
 MAP_GRID_SIZE = Point(14,14)
 MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION, MAP_GRID_SIZE.y * GRID_RESOLUTION)
 
@@ -127,7 +127,6 @@ class MainGame(GameView):
                         if(i._get_tile().manhattan(player._get_tile())<closest._get_tile().manhattan(player._get_tile())):
                             closest=i
                     closest.alert_to(player, player._get_tile())
-    
         
         for police in self.police:
             for player in self.players:
@@ -137,7 +136,9 @@ class MainGame(GameView):
                 #the player checks around for a police officer, then avoids them if one is near
                 player.avoid_police(police)
                 
-                
+        
+        
+
     def render(self):
         for row_number in range(len(self.map_tiles)):
             for tile in self.map_tiles[row_number]:
@@ -149,7 +150,7 @@ class MainGame(GameView):
         
         for entity in self.entities:
             entity.post_render(self.canvas)
-            
+        """
         for zone in self.zones:
             color = zone.get_dominant_color()
             if(color is not None):
@@ -162,7 +163,7 @@ class MainGame(GameView):
                                          GRID_RESOLUTION,
                                          GRID_RESOLUTION),
                                      1)
-    
+        """
     #begin helper functions
     def add(self, entity):
         entity.set_parent(self)
@@ -248,3 +249,4 @@ class MainGame(GameView):
                                  random.random(),
                                  random.random())
                  )
+
