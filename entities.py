@@ -167,8 +167,10 @@ class Player(LivingEntity):
           self.color = color
           self.keybindings = keybindings
           self.max_speed = Point(Player.MAX_SPEED,Player.MAX_SPEED)
+          
           self.size = Point(50,50)
           self.rect_offset = Point(0,0)
+
           self.bomb = True
           self.explosion = pygame.mixer.Sound(os.getcwd()+"/res/bomb_noise.wav")
           self.player_number = n
@@ -177,7 +179,7 @@ class Player(LivingEntity):
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
-          
+
           #The player moves along the map grid tiles.
           if (self._pressed("LEFT")):
               self.x -= 50
@@ -206,20 +208,7 @@ class Player(LivingEntity):
           elif(self._pressed("BOMB")):
                pass#TODO fail sounds
                
-          self.bombcooldown -= elapsed
-          
-      
-     def avoid_police(self, police):
-        ''' ('Player', 'Police') -> None
-        The player will not be able to move for 3 seconds after he/she has 
-        been caught by a guard.
-        '''    	
-        #TODO: fix so it actually works
-        if (self.stasis==0 and police.get_rect().colliderect(self.get_rect())):
-            self.velocity.y = 0
-            self.velocity.x = 0
-            
-            police.wander()
+          #self.bombcooldown -= elapsed
         
      def render(self,canvas):
           canvas.blit(Player.placeholders[self.facing],
