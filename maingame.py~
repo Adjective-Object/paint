@@ -3,11 +3,12 @@ from maptile import MapTile
 from zone import Zone
 from random import randint
 import pygame
-import entities
-from entities import Point
+import entities 
+from entities import *
 import random
 import threading
 from time import sleep
+import types
 
 
 GRID_RESOLUTION = 50
@@ -18,16 +19,11 @@ MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION, MAP_GRID_SIZE.y * GRID_RESOL
 class MainGame(GameView):
     """
     The main logic within the game. 
+    
+    operations:
     """   
     
     def __init__(self,canvas):
-       
-        self.running = True
-        th1 = threading.Thread(target = self.player_one)
-        th2 = threading.Thread(target = self.player_two)
-        th1.start()
-        th2.start()
-       
         super(MainGame, self).__init__(canvas)
         
         self.zones = []        
@@ -44,12 +40,39 @@ class MainGame(GameView):
         self._populate_map()
         self.ease_elapsed = 0
         
-    def player_one (self):
+    def player_one (self, elapsed):
         '''
         Handles the running of all operations that run in player one's thread, as well
         as creation of the player.
         '''
-        self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2, 2, pygame.color.Color(232,44,12,255),
+        self.player_1.update(elapsed)
+        print (self.player_1.x)
+        
+        #non-alive entities are removed from the continual updates
+        for dead in filter(lambda ent: not ent.alive, self.entities):
+            self.entities.remove(dead)
+            
+    def player_two (self, elapsed):
+        '''
+        Handles the running of all operations that run in player two's thread, as well 
+        as creation of the player.
+        '''
+        self.player_2.update(elapsed)
+            
+        #non-alive entities are removed from the continual updates
+        for dead in filter(lambda ent: not ent.alive, self.entities):
+            self.entities.remove(dead)
+        
+    def easing(self,elapsed):
+        self.ease_elapsed+=elapsed
+        self.cameray = -800*(1-(self.ease_elapsed))-20
+        print (self.cameray)
+    
+    def add_player_objects(self):
+        '''
+        Will create the player objects that are required in the game and assign them to class attributes.
+        '''
+        self.player_1 = self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2, 2, pygame.color.Color(232,44,12,255),
             keybindings = {"LEFT": pygame.K_a,
             "RIGHT": pygame.K_d,
             "UP": pygame.K_w,
@@ -59,38 +82,39 @@ class MainGame(GameView):
             "ITEM": pygame.K_c}                                                   
         ))      
         
-    def player_two (self):
-        '''
-        Handles the running of all operations that run in player two's thread, as well 
-        as creation of the player.
-        '''
-        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2, 1, pygame.color.Color(23,71,166,255),
+        self.player_2 = self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2, 1, pygame.color.Color(23,71,166,255),
             keybindings = {"LEFT": pygame.K_LEFT,
             "RIGHT": pygame.K_RIGHT,
             "UP": pygame.K_UP,
             "DOWN": pygame.K_DOWN,
             "PAINT": pygame.K_COMMA,
             "BOMB": pygame.K_PERIOD,
-            "ITEM": pygame.K_SLASH}                                          
+            "ITEM": pygame.K_SLASH}
         ))
-                                    
         
-    def easing(self,elapsed):
-        self.ease_elapsed+=elapsed
-        self.cameray = -800*(1-(self.ease_elapsed))-20
-        print (self.cameray)
-    
+        
     def main_loop(self, elapsed):
         """
-        Loops the game logic.
+        Loops the game logic for cameras and policemen, and starts player threads.
         """
-        for entity in self.entities:
-            if(entity.stasis==0):
-                entity.update(elapsed)
-            else:
-                entity.stasis-=elapsed
-                entity.stasis = max (entity.stasis,0)
         
+        self.add_player_objects()
+        
+        #Two separate threads run for each individual player.
+        self.running = True
+        th1 = threading.Thread(target = self.player_one(elapsed))
+        th2 = threading.Thread(target = self.player_two(elapsed))
+        th1.start()
+        th2.start()
+        
+        for entity in filter(lambda ent: not isinstance(ent, Player), self.entities):
+                if(entity.stasis==0):
+                    entity.update(elapsed)
+                else:
+                    entity.stasis-=elapsed
+                    entity.stasis = max (entity.stasis,0)
+        
+        #non-alive entities are removed from the continual updates
         for dead in filter(lambda ent: not ent.alive, self.entities):
             self.entities.remove(dead)
         
@@ -113,8 +137,7 @@ class MainGame(GameView):
                 #the player checks around for a police officer, then avoids them if one is near
                 player.avoid_police(police)
                 
-        
-        
+                
     def render(self):
         for row_number in range(len(self.map_tiles)):
             for tile in self.map_tiles[row_number]:

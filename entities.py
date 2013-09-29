@@ -178,7 +178,7 @@ class Player(LivingEntity):
       
      def update(self,elapsed):
           super(Player,self).update(elapsed)
-          
+
           #The player moves along the map grid tiles.
           if (self._pressed("LEFT")):
               self.x -= 50
@@ -207,7 +207,7 @@ class Player(LivingEntity):
           elif(self._pressed("BOMB")):
                pass#TODO fail sounds
                
-          self.bombcooldown -= elapsed
+          #self.bombcooldown -= elapsed
           
       
      def avoid_police(self, police):
