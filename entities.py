@@ -167,13 +167,8 @@ class Player(LivingEntity):
           self.color = color
           self.keybindings = keybindings
           self.max_speed = Point(Player.MAX_SPEED,Player.MAX_SPEED)
-<<<<<<< HEAD
-          self.size = Point(40,40)
-          self.rect_offset = Point(5,5)
-=======
-          self.size = Point(25,25)
+          self.size = Point(50,50)
           self.rect_offset = Point(0,0)
->>>>>>> 390720b3f8ef86e428bca32d25072ea11150d4d8
           self.bomb = True
           self.explosion = pygame.mixer.Sound(os.getcwd()+"/res/bomb_noise.wav")
           self.player_number = n
@@ -370,7 +365,7 @@ class Police(LivingEntity):
                if(isfast and self.speed!=Police.SPEED_FAST):
                               self.fasttimer = time.time()
                               self.speed = Police.SPEED_FAST               
-               self.destination = target_entity._get_tile()
+               self.destination = player._get_tile()
                self.path = self.find_path(self._get_tile(),self.destination)[1:]
                #print self.path
                self.parent.add(Exclamation(self.x+20, self.y))
