@@ -10,7 +10,7 @@ import threading
 from time import sleep
 
 
-GRID_RESOLUTION = 48
+GRID_RESOLUTION = 50
 MAP_GRID_SIZE = Point(14,14)
 MAP_SIZE = Point(MAP_GRID_SIZE.x * GRID_RESOLUTION, MAP_GRID_SIZE.y * GRID_RESOLUTION)
 
@@ -98,33 +98,21 @@ class MainGame(GameView):
         for camera in self.cameras:
             for player in self.players:
                 if(camera.get_vision_rect().colliderect(player.get_rect())):
-<<<<<<< HEAD
-                    closest = min(self.police, key = lambda i: i._get_tile().manhattan(player._get_tile()))
-                    closest.alert_to(player)
-=======
                     closest = self.police[0]
                     for i in self.police:
                         if(i._get_tile().manhattan(player._get_tile())<closest._get_tile().manhattan(player._get_tile())):
                             closest=i
                     closest.alert_to(player, player._get_tile())
     
->>>>>>> 390720b3f8ef86e428bca32d25072ea11150d4d8
         
         for police in self.police:
             for player in self.players:
                 if(police.get_vision_rect().colliderect(player.get_rect())):
-<<<<<<< HEAD
-                    police.alert_to(player, True)
-                if(player.stasis==0 and police.get_rect().colliderect(player.get_rect())):
-                    player.stais=5
-                    police.wander()
-=======
                     police.alert_to(player, player._get_tile(), True)
                     
                 #the player checks around for a police officer, then avoids them if one is near
                 player.avoid_police(police)
                 
->>>>>>> 390720b3f8ef86e428bca32d25072ea11150d4d8
         
         
     def render(self):
@@ -138,7 +126,7 @@ class MainGame(GameView):
         
         for entity in self.entities:
             entity.post_render(self.canvas)
-        """
+            
         for zone in self.zones:
             color = zone.get_dominant_color()
             if(color is not None):
@@ -151,7 +139,7 @@ class MainGame(GameView):
                                          GRID_RESOLUTION,
                                          GRID_RESOLUTION),
                                      1)
-        """
+    
     #begin helper functions
     def add(self, entity):
         entity.set_parent(self)
@@ -204,34 +192,6 @@ class MainGame(GameView):
         return retmap
     
     def _populate_map(self):
-<<<<<<< HEAD
-        self.add(entities.Player(GRID_RESOLUTION,GRID_RESOLUTION*2, 1,
-                                          pygame.color.Color(23,71,166,255),
-                                          keybindings = {"LEFT": pygame.K_LEFT,
-                                                         "RIGHT": pygame.K_RIGHT,
-                                                         "UP": pygame.K_UP,
-                                                         "DOWN": pygame.K_DOWN,
-                                                         "PAINT": pygame.K_COMMA,
-                                                         "BOMB": pygame.K_PERIOD,
-                                                         "ITEM": pygame.K_SLASH}                                          
-                                          ))
-        self.add(entities.Player(GRID_RESOLUTION*5,GRID_RESOLUTION*2, 2,
-                                                  pygame.color.Color(232,44,12,255),
-                                                  keybindings = {"LEFT": pygame.K_a,
-                                                                 "RIGHT": pygame.K_d,
-                                                                 "UP": pygame.K_w,
-                                                                 "DOWN": pygame.K_s,
-                                                                 "PAINT": pygame.K_z,
-                                                                 "BOMB": pygame.K_x,
-                                                                 "ITEM": pygame.K_c}                                                   
-                                                  ))        
-        
-        for x in range(3,9):
-            for y in range(3,9):
-                pol = self.add(entities.Police(GRID_RESOLUTION*x,
-                                 GRID_RESOLUTION*y+1)
-                )
-=======
         '''
         The different entities excluding player are added to the game. This includes
         cameras and policemen.
@@ -265,4 +225,3 @@ class MainGame(GameView):
                                  random.random(),
                                  random.random())
                  )
->>>>>>> 390720b3f8ef86e428bca32d25072ea11150d4d8
